@@ -37,9 +37,9 @@
 
 ## GitHub 保存代码（第一次使用）
 
-仓库：[simonliuliu/imtoken.fans](https://github.com/simonliuliu/imtoken.fans)，设为私有，仅你和你授权的人可访问。电脑上的项目目录仍是 `/Users/simonliu/Desktop/imtoken.fans`。
+仓库：[simonliuliu/imtoken.fans](https://github.com/simonliuliu/imtoken.fans)，为公开仓库，任何人可阅读；只有获得授权的协作者可以推送任务分支。电脑上的项目目录仍是 `/Users/simonliu/Desktop/imtoken.fans`。
 
-以后改完代码，可以直接对 Codex 说：「检查本次改动并提交到 GitHub」，由 Codex 检查、提交并上传。VS Code 里“保存文件”只保存到电脑；Git 的“提交”记录本地版本；“推送”才会同步到 GitHub。
+以后可以直接对 Codex 说：「按团队协作规则完成这个任务并提交 PR」。所有开发先同步主线，再新建自己的任务分支；每次提交前再次同步远端，解决冲突并检查，再推送自己的分支，经过其他维护者审查后合并。详细操作见 [团队协作规则](CONTRIBUTING.md)。VS Code 里“保存文件”只保存到电脑；Git 的“提交”记录本地版本；“推送”才会同步到 GitHub；PR 是申请将任务分支合入主线。
 
 `.env.local` 中的真实密钥、`node_modules` 依赖和 `.next` 构建结果已排除，不会上传。GitHub 中只保留空值配置模板 `.env.example`；换电脑时需要单独、安全地配置 `.env.local`，再安装依赖。
 

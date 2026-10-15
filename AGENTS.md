@@ -8,6 +8,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+# Git 团队协作（2026-10-15）
+
+- 开工及提交前必须阅读并执行根目录 `CONTRIBUTING.md`，人和 AI 使用同一规则。
+- 开工先检查工作区，获取远端更新，将本地 `main` 以 `--ff-only` 同步至 `origin/main`，然后从最新主线新建任务分支；禁止直接在 `main` 开发、提交或推送。
+- 一人一任务一分支；Codex 用 `codex/<任务名>`，团队成员用 `<类型>/<姓名>-<任务名>`。并行任务使用独立 clone 或 worktree，不能在同一个工作目录同时切换分支。
+- 每次提交前先 `git fetch origin --prune`，将最新 `origin/main` 合并进自己的任务分支；有同名远端任务分支时也先合并它。存在冲突则先解决并检查，不能用强推或覆盖他人文件规避。
+- 仅暂存本任务明确的文件；检查差异和凭证，按变更范围完成验证。提交后只推送任务分支，创建 PR 并记录检查和限制；至少一名其他维护者批准后才合并。功能阶段的用户 review 仍单独有效。
+- 禁止自动执行 `reset --hard`、`clean -fd`、强制推送或丢弃他人的改动；工作区存在其他任务时先保护现场。本地有未完成工作时不得直接 `pull`、切主线或盲目 `stash`。
+- 仓库公开不等于可直接写入；邀请协作者由仓库所有者单独授权，未授权成员走 fork + PR。不得上传 `.env.local`、密钥、真实用户敏感数据或包含凭证的日志。
+
 # 当前项目方向与任务管理（2026-10-14）
 
 本项目由原 imAihunt 改造为 **imToken Fans**，服务 imToken 钱包用户。四个一级板块：
