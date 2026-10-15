@@ -55,7 +55,8 @@
     "feedback": "产品反馈",
     "discussion": "综合交流",
     "activities": "活动",
-    "communityNote": "社区分享与讨论不代表官方建议。"
+    "communityNote": "社区分享与讨论不代表官方建议。",
+    "previewVersion": "预览版本"
   },
   "meta": {
     "homeTitle": "imToken Fans — imToken 钱包用户社区",
@@ -944,14 +945,14 @@
     "breadcrumb": "当前位置",
     "compose": "发帖",
     "composeTitle": "发帖预览",
-    "composeNotice": "这是演示预览，不会发布或写入账号；登录不会改变演示数据。请勿输入任何敏感信息。",
+    "composeNotice": "内容仅供预览，尚未发布。请勿填写敏感信息。",
     "boardField": "选择板块",
     "titleField": "标题（最多 60 字）",
     "bodyField": "正文（最多 2000 字）",
     "titlePlaceholder": "你想和大家聊什么？",
     "bodyPlaceholder": "写下你的想法，使用虚构示例，勿填写钱包敏感信息。",
     "previewCta": "查看预览",
-    "previewOnly": "仅预览，未发布",
+    "previewOnly": "未发布",
     "editPreview": "继续编辑",
     "close": "关闭预览",
     "sortLabel": "帖子排序",
@@ -961,17 +962,17 @@
       "popular": "热门"
     },
     "categoryFilter": "内容分类",
-    "statusFilter": "演示状态",
+    "statusFilter": "处理状态",
     "all": "全部",
     "featured": "精选",
-    "exampleCount": "{count} 篇示例",
-    "feedLabel": "社区演示帖子",
+    "exampleCount": "{count} 篇帖子",
+    "feedLabel": "社区帖子",
     "commentCount": "{count} 评论",
     "likeCount": "{count} 赞",
     "voteCount": "{count} 票",
-    "loadMore": "加载更多示例",
+    "loadMore": "加载更多",
     "feedFootnote": "内容、作者和计数均为虚构示例；互动仅保存在当前页面。",
-    "empty": "该分类暂无示例帖子",
+    "empty": "暂无帖子",
     "showAll": "查看全部",
     "popularTitle": "热门",
     "announcementsTitle": "社区公告",
@@ -986,7 +987,7 @@
     "profile": "我的资料",
     "growthRules": "成长说明",
     "checkinCta": "签到与抽奖",
-    "historyNote": "原 AI 共创记录单独保留，与本页演示帖子区分。",
+    "historyNote": "历史共创记录单独保留。",
     "historicalProducts": "历史 AI 产品",
     "historicalIdeas": "历史 AI 点子",
     "comment": "评论",
@@ -996,17 +997,17 @@
     "voted": "已选择",
     "interactionNotice": "演示互动仅保存在当前页面，刷新后恢复，不写入账号或发放奖励。",
     "commentsTitle": "评论与回复（{count}）",
-    "commentPlaceholder": "说说你的看法（演示，最多 1000 字；请勿输入敏感信息）",
+    "commentPlaceholder": "说说你的看法（最多 1000 字；勿输入敏感信息）",
     "reply": "回复",
     "replyingTo": "回复 {name}",
     "cancelReply": "取消回复",
-    "addReply": "添加演示回复",
-    "addComment": "添加演示评论",
-    "commentAdded": "已添加演示评论，未发布到社区。",
+    "addReply": "添加回复",
+    "addComment": "添加评论",
+    "commentAdded": "已添加，仅当前页面有效",
     "commentLikesTotal": "当前点赞了 {count} 条演示评论",
-    "justNow": "刚刚 · 本地演示",
+    "justNow": "刚刚",
     "fictionalAuthor": "原创虚拟作者 · 非真实用户资料",
-    "authorPostCount": "{count} 篇演示帖",
+    "authorPostCount": "{count} 篇帖子",
     "authorPostCountNote": "示例贡献，不代表真实活跃度",
     "backToBoard": "返回板块",
     "related": "继续看看",
@@ -1021,12 +1022,18 @@
       "summer": "夏日微风",
       "river": "河岸笔记",
       "moss": "青苔观察",
-      "you": "你（演示）"
+      "you": "你"
     },
     "comments": {
       "first": "这个切入点很具体。比起泛泛而谈，把困惑发生在哪一步说清楚，会更方便继续讨论。",
       "second": "我还想知道不同经验的用户会怎么理解。可以保留几个不同说法，再一起比较。",
-      "reply": "同意，先把问题描述清楚，再讨论解决方法。这里的对话也是演示示例。"
+      "reply": "同意，先把问题描述清楚，再讨论解决方法。",
+      "note1": "也许可以先选一个具体场景，看看大家在哪一步最容易卡住。",
+      "note2": "我更关心信息来源是否清楚，方便读完后继续核对。",
+      "note3": "可以把不同经验的看法放在一起，比对一下理解差异。",
+      "note4": "先收集问题，再整理成短清单，应该更容易继续讨论。",
+      "note5": "我想知道这件事在手机上读起来是否同样清楚。",
+      "note6": "保留问题的背景，会让后续补充更有针对性。"
     },
     "categories": {
       "scams": "防骗识别",
@@ -1034,7 +1041,7 @@
       "help": "使用求助",
       "wallet": "产品反馈",
       "ai": "AI 共创",
-      "changelog": "产品公告 · 示例",
+      "changelog": "产品公告",
       "questions": "论坛 · 提问讨论",
       "research": "论坛 · 学习分享",
       "industry": "论坛 · 行业讨论",
@@ -1048,20 +1055,20 @@
       "builds": "社区产品"
     },
     "states": {
-      "pending": "待处理 · 示例",
-      "discussion": "讨论中 · 示例",
-      "recorded": "已记录 · 示例"
+      "pending": "待整理",
+      "discussion": "评估中",
+      "recorded": "已记录"
     },
     "sections": {
       "safety": {
         "name": "钱包安全",
         "topics": "安全故事 · 案例分析 · 指南提醒 · 求助问答",
-        "description": "分享安全故事，复盘风险案例，交流指南与问题。本页内容均为虚构示例，不代表官方发布或已核验事实。"
+        "description": "分享安全故事，复盘风险案例，交流指南与问题。"
       },
       "feedback": {
         "name": "产品共创",
         "topics": "产品反馈 · 社区产品 · 产品公告",
-        "description": "提出产品建议，发现社区作品，了解产品公告。所有内容与处理状态均为虚构示例。"
+        "description": "提出产品建议，发现社区作品，了解产品公告。"
       },
       "discussion": {
         "name": "综合交流",
@@ -1101,7 +1108,7 @@
       },
       "clearer-transaction": {
         "title": "一个小建议：交易确认页能不能更好读？",
-        "excerpt": "这是钱包反馈示例：让重要信息先出现，让不熟悉的名词有更容易理解的解释。",
+        "excerpt": "让重要信息先出现，让不熟悉的名词有更容易理解的解释。",
         "body1": "我设想的场景是：用户在确认之前，希望先知道正在做什么，再去看具体参数。如果把最重要的内容放在前面，阅读时可能会更从容。",
         "body2": "可以试着把动作、涉及对象、需要注意的内容分层展示。说明文字尽量短，需要更多背景时再展开，不把所有信息挤在同一个地方。",
         "body3": "示意图只用于讨论信息层级。你会先改哪一处？也想听听第一次使用钱包的朋友，会怎样理解这些信息。",
@@ -1140,8 +1147,8 @@
         "option2": "识别催促话术"
       },
       "ai-explainer": {
-        "title": "社区作品示例：用「链上书签」整理常用资料",
-        "excerpt": "一个虚构的非 AI 工具：把常用资料按网络和用途收好，不连接钱包，不读取资产。",
+        "title": "「链上书签」：整理常用资料的工具构想",
+        "excerpt": "按网络和用途整理常用资料，不连接钱包、不读取资产；目前为作品构想，尚无可用产品。",
         "body1": "「链上书签」是为展示社区产品区而编写的虚构作品，并没有可访问的真实产品。这份介绍中的创作者、功能和支持数均为示例，与 imToken 官方无产品关系。",
         "body2": "设想它是一份保存在设备本地的资料夹：用户手动输入资料标题、用途和来源备注，按网络或主题归档。无需连接钱包、提供地址或导入任何资产记录；链接是否可信仍需使用者自行核对。",
         "body3": "这个示例展示「发现作品—支持—与创作者交流—迭代」的路径。你可以在下方模拟支持或留言，刷新即恢复。当前没有试用入口，也不会把点击支持计作试用成功。",
@@ -1225,14 +1232,15 @@
     "compactGrowth": "Lv2 · 760 XP（成长示例）",
     "goCheckin": "去签到",
     "carouselRole": "轮播",
-    "carouselTitle": "社区推荐（示例）",
+    "carouselTitle": "社区推荐",
     "readMore": "阅读详情",
     "previousSlide": "上一张",
     "nextSlide": "下一张",
     "goToSlide": "查看第 {index} 张",
     "slidePosition": "第 {index} / {count} 张",
     "refreshPopular": "换一批",
-    "contentTypeField": "内容类型"
+    "contentTypeField": "内容类型",
+    "localInteraction": "已更新，仅当前页面有效"
   },
   "tokenPersonas": {
     "title": "数字币人",

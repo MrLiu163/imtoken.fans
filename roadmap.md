@@ -1,6 +1,6 @@
 # imToken Fans 项目路线图
 
-更新：2026-10-15 · 当前阶段：M1-A2首页精简与数字币人入口已完成本地验证，等待用户review。  
+更新：2026-10-15 · 当前阶段：M1首页横幅、提示清理与聚合排序已完成本地验证，等待用户review。  
 目标：服务 imToken 钱包用户，包含钱包安全、产品共创（产品反馈 / 社区产品 / 产品公告）、综合交流、活动区四板块。
 
 产品定义、需求编号与验收见 [产品需求说明](docs/product-requirements.md)，代码盘点、技术边界见 [执行计划](docs/product-execution-plan.md)。本轮 [需求对齐记录](docs/tasks/product-scope-alignment.md)已完成，M1-A2已同步演示导航/三子区与分类互动；真实业务模型仍待后续实施。旧路线图见 [历史归档](docs/archive/imaihunt-roadmap-v0.2.md)，不作为本次进度依据。
@@ -143,3 +143,5 @@ M1-A 已交付首页、Header/Footer、四板块导览、登录品牌小修、VS
 | 2026-10-15 | M1-A2 第二轮：首页精简，Claude 单次布局设计、GPT 实现轮播/热门/内容流/小侧栏，同步 PRD 演示分类 | i18n1067键、lint、build通过；中英1440/390无溢出，轮播/排序/分类/本地支持实测；未写库/部署，见[review](docs/reviews/M1-A2-home-simplify.md) | 等用户视觉 review，不进入 M2 |
 
 | 2026-10-15 | 数字币人：替换首页参与卡，综合交流入口，5张AI头像与本地圈子预览 | i18n1084键、lint、build通过；中英桌面/手机、图片加载、弹窗/Esc/焦点实测；未接AI、@或真实群组 | 等用户review；真实功能交其他负责人 |
+
+| 2026-10-15 | 首页三张AI横幅，删除重复演示提示；推荐按管理员标记、最新按时间、热门按评论数跨四板块聚合 | i18n1092键、lint、build通过；中英手机/桌面、3图切换、三排序及评论8→9一致性实测；仍为本地内容，未接真实后台推荐或数据库查询，见[review](docs/reviews/M1-home-banner-feed-polish.md) | 等用户review，再进入真实业务阶段 |
