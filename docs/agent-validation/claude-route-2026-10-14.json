@@ -1,0 +1,24 @@
+{
+  "model": "devin/claude-opus-5-5",
+  "provider": "magpie (existing configuration)",
+  "reasoning_effort": "low",
+  "brief_chars": 58,
+  "image_count": 0,
+  "exit_code": 0,
+  "completed": true,
+  "usage": {
+    "input_tokens": 11611,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 11607,
+    "output_tokens": 17,
+    "reasoning_output_tokens": 0
+  },
+  "routing_evidence": "requested provider/model accepted; provider internal routing not inspected",
+  "live_call_date": "2026-10-14",
+  "recorded_in_project": "2026-10-15",
+  "answer": "CLAUDE_ROUTE_OK",
+  "scope": "connectivity test only; no UI design or feature development",
+  "cursor_route": "403 provider region restriction",
+  "default_chatgpt_route": "400 model unsupported",
+  "billing": "provider counters are evidence only; no currency cost inferred"
+}

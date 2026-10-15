@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "success passed",
+    "existing output rejected before model call",
+    "failure passed",
+    "empty passed",
+    "timeout passed",
+    "dry passed",
+    "interrupt cleanup passed",
+    "oversized brief rejected",
+    "SIGTERM cancellation cleanup passed"
+  ],
+  "used_real_model": false,
+  "verified_on": "2026-10-15"
+}

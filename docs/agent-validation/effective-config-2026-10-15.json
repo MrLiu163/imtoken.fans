@@ -1,0 +1,12 @@
+{
+  "checked_on": "2026-10-15",
+  "strict_config_read": "passed",
+  "main_model": "gpt-6.1-sol",
+  "main_effort": "medium",
+  "native_roles": [
+    "developer",
+    "qa"
+  ],
+  "max_native_workers": 2,
+  "external_designer": "devin/claude-opus-5-5 via launcher; not a native role"
+}

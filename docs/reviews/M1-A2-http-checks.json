@@ -1,0 +1,197 @@
+{
+  "date": "2026-10-15",
+  "records": 12,
+  "normalPages": [
+    {
+      "path": "/zh",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/safety",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/feedback",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/discussion",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/activities",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/safety/approval-checklist",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/feedback/clearer-transaction",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/discussion/first-wallet-question",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/activities/weekend-conversation",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/safety/fake-support-message",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/feedback/ai-explainer",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/feedback/reading-release-notes",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/discussion/learning-notebook",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/activities/checkin-routine",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/safety/network-help",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/discussion/better-questions",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/zh/community/activities/reading-circle",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/safety",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/feedback",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/discussion",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/activities",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/safety/approval-checklist",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/feedback/clearer-transaction",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/discussion/first-wallet-question",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/activities/weekend-conversation",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/safety/fake-support-message",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/feedback/ai-explainer",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/feedback/reading-release-notes",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/discussion/learning-notebook",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/activities/checkin-routine",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/safety/network-help",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/discussion/better-questions",
+      "status": 200,
+      "renderedDemo": true
+    },
+    {
+      "path": "/en/community/activities/reading-circle",
+      "status": 200,
+      "renderedDemo": true
+    }
+  ],
+  "invalidPages": [
+    {
+      "path": "/zh/community/unknown",
+      "status": 200,
+      "notFoundRendered": true,
+      "noindex": true
+    },
+    {
+      "path": "/zh/community/safety/missing",
+      "status": 200,
+      "notFoundRendered": true,
+      "noindex": true
+    },
+    {
+      "path": "/zh/community/safety/clearer-transaction",
+      "status": 200,
+      "notFoundRendered": true,
+      "noindex": true
+    }
+  ],
+  "invalidStatusNote": "Next.js streamed not-found responses return HTTP 200; custom not-found UI and noindex verified. See installed not-found.md."
+}

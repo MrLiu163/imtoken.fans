@@ -1,0 +1,53 @@
+# imToken Fans 项目配置；不修改用户级设置或权限。
+# 主对话负责调度，模型选择器/启动参数可能覆盖项目默认值。
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"
+developer_instructions = """
+你是 imToken Fans 项目的主调度。先读 AGENTS.md、roadmap.md 和 docs/agent-workflow.md。
+依照工作流按需启动专业子 agent，显式落实对应 TOML 的模型、推理强度与指令。
+任务卡明确文件归属和验收；共享文件只有一个写入者；收集结果、检查和整合由主对话负责。
+复杂任务最多三个子 agent 并发；简单任务直接完成；默认不让子 agent 再派生子 agent。
+只有用户明确开始当前阶段才启动阶段功能开发；角色配置安装或咨询不自动触发 M1。
+"""
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "medium"
+
+[agents.explorer]
+description = "只读盘点代码、版本文档、依赖和真实执行路径。"
+config_file = "agents/explorer.toml"
+
+[agents.copywriter]
+description = "编写中英界面文案、翻译键和术语，遵守品牌和证据边界。"
+config_file = "agents/copywriter.toml"
+
+[agents.designer]
+description = "设计信息架构、品牌样式、组件状态和响应式布局。"
+config_file = "agents/designer.toml"
+
+[agents.frontend]
+description = "实现跨组件的 Next.js 双语页面、表单与交互。"
+config_file = "agents/frontend.toml"
+
+[agents.fixer]
+description = "根据明确规范完成局部组件调整、小修复和机械迁移。"
+config_file = "agents/fixer.toml"
+
+[agents.backend]
+description = "设计和实现 Supabase 数据模型、迁移、权限、服务端与媒体流程。"
+config_file = "agents/backend.toml"
+
+[agents.qa]
+description = "执行确定的工程与功能验收，整理可复现问题和证据。"
+config_file = "agents/qa.toml"
+
+[agents.reviewer]
+description = "独立审查正确性、权限、迁移兼容、回归和验收缺口。"
+config_file = "agents/reviewer.toml"
+
+[agents.architect]
+description = "仅在主调度升级时解决高复杂度架构争议与难解问题。"
+config_file = "agents/architect.toml"

@@ -1,0 +1,25 @@
+# imToken Fans v2：主调度 + 设计 + 统一开发；QA 按风险启用。
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"
+developer_instructions = """
+你是主调度。先读 AGENTS.md、roadmap.md、docs/agent-workflow.md。
+按需启动 designer/developer；QA 仅按风险或用户明确要求启动，普通改动由开发自检。
+Claude designer 通过 scripts/run-claude-design.py 调用现有 magpie/Devin 渠道，不能向只接受 OpenAI 的 collaboration.spawn_agent 传 Claude ID。
+先整合设计 Brief，收集设计交付，再安排 GPT 实现；具体文件归属由你分配。
+所有文件一次一个写入者；通常最多两个 GPT 子 agent 并发。临时 Claude 工作进程也计入总并发预算。
+配置安装不开始 M1；只有用户明确开始阶段才进行工程实现。不新增或消息其他聊天，不改用户全局配置。
+"""
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 2
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "medium"
+
+[agents.developer]
+description = "统一前后端开发：页面、交互、双语、Server Actions、Supabase 与媒体。"
+config_file = "agents/developer.toml"
+
+[agents.qa]
+description = "按风险启用的独立 QA 与安全审查；不参与每次普通文案或样式修改。"
+config_file = "agents/qa.toml"
