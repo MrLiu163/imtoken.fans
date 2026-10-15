@@ -197,6 +197,10 @@ roadmap.md                当前任务优先级与里程碑
 
 ## 部署到 Vercel
 
+本项目已在 `simonliulius-projects` 下创建 `imtoken-fans` 并连接本仓库。任务分支推送后查看 PR 的 Vercel 预览状态；合入 `main` 后更新主站。当前是未配置数据库等密钥的社区演示，真实登录与写入不在此次部署范围内。配置、验证结果与限制见 [自动预览任务记录](docs/tasks/vercel-auto-preview.md)。
+
+以下为后续启用真实业务时的通用配置步骤；不要把本地密钥直接写进公开仓库，也不要未经确认将生产高权限密钥用于外部 PR 预览。
+
 1. 代码推送到 GitHub 后，登录 https://vercel.com ，点 **Add New -> Project**，选择这个仓库
 2. 在 **Environment Variables** 里把 `.env.example` 里的变量都填上真实值
 3. 点 **Deploy**，几分钟后就会有一个 `xxx.vercel.app` 的正式网址

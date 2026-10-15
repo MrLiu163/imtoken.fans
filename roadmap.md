@@ -126,6 +126,8 @@ M1-A 已交付首页、Header/Footer、四板块导览、登录品牌小修、VS
 
 ## 最新执行记录
 
+2026-10-15 Vercel 自动预览：已按用户授权创建 `simonliulius-projects/imtoken-fans`，连接 GitHub 本仓库；首次 main 构建与分支预览验证进行中。未配置数据库/钱包/AI 密钥，不修改数据；当前为虚拟内容演示，真实业务验收与产品 review 状态不变。详见[任务记录](docs/tasks/vercel-auto-preview.md)。
+
 2026-10-15 GitHub 首次保存：用户授权创建私有仓库 [simonliuliu/imtoken.fans](https://github.com/simonliuliu/imtoken.fans) 并提交当前工程。待提交文件的本地配置值/常见密钥扫描未发现真实凭证，确认 `.env.local`、依赖及构建结果被忽略；i18n（1084键）、lint、build通过。README 补充新手保存说明；本次不涉及网站部署或数据库变更，当前产品 review 状态不变。
 
 | 日期 | 范围 | 验证与限制 | 下一步 |
