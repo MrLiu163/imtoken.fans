@@ -1,16 +1,34 @@
 import { createClient } from "@/lib/supabase/server";
-import type { CommentWithAuthor, SubmissionCard, SubmissionType } from "@/lib/types";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import type { CommentWithAuthor, ProductRating, SubmissionCard, SubmissionType } from "@/lib/types";
+
+function normalizeSubmissionCard(row: SubmissionCard): SubmissionCard {
+  return {
+    ...row,
+    product_platforms: row.product_platforms ?? [],
+    pricing_type: row.pricing_type ?? null,
+    launch_stage: row.launch_stage ?? null,
+    maker_relationship: row.maker_relationship ?? null,
+    maker_note: row.maker_note ?? null,
+    feedback_prompt: row.feedback_prompt ?? null,
+    published_at: row.published_at ?? null,
+    support_count: Number(row.support_count ?? 0),
+    rating_count: Number(row.rating_count ?? 0),
+    rating_average: row.rating_average == null ? null : Number(row.rating_average),
+  };
+}
 
 // 公开列表页用：只看已发布的内容，可见性最终由 submission_cards 视图底层的 RLS 决定，
 // 这里的 .eq('status','published') 只是在此基础上再叠加一层"公开列表只展示已发布"。
 export async function getPublishedSubmissionCards(type?: SubmissionType): Promise<SubmissionCard[]> {
+  if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
   let query = supabase.from("submission_cards").select("*").eq("status", "published").is("deleted_at", null);
   if (type) query = query.eq("type", type);
 
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []) as SubmissionCard[];
+  return ((data ?? []) as SubmissionCard[]).map(normalizeSubmissionCard);
 }
 
 // 详情页用：不加 status 过滤——RLS 已经保证「已发布 OR 自己的 OR 管理员」，
@@ -26,7 +44,7 @@ export async function getSubmissionCardById(id: string, type: SubmissionType): P
     .eq("type", type)
     .is("deleted_at", null)
     .maybeSingle();
-  return (data as SubmissionCard | null) ?? null;
+  return data ? normalizeSubmissionCard(data as SubmissionCard) : null;
 }
 
 // Profile 页用：作者自己的全部提交，不管状态（RLS 已经保证只能查到自己的 + 已发布的）。
@@ -40,7 +58,7 @@ export async function getOwnSubmissionCards(userId: string): Promise<SubmissionC
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as SubmissionCard[];
+  return ((data ?? []) as SubmissionCard[]).map(normalizeSubmissionCard);
 }
 
 export async function getSimilarSubmissions(current: SubmissionCard, limit = 4): Promise<SubmissionCard[]> {
@@ -54,7 +72,7 @@ export async function getSimilarSubmissions(current: SubmissionCard, limit = 4):
     .neq("id", current.id)
     .overlaps("tags", current.tags)
     .limit(limit);
-  return (data ?? []) as SubmissionCard[];
+  return ((data ?? []) as SubmissionCard[]).map(normalizeSubmissionCard);
 }
 
 export async function getUserVoteFlags(submissionId: string): Promise<{ paid: boolean; creative: boolean }> {
@@ -72,6 +90,72 @@ export async function getUserVoteFlags(submissionId: string): Promise<{ paid: bo
 
   const types = new Set((data ?? []).map((row) => row.vote_type));
   return { paid: types.has("paid"), creative: types.has("creative") };
+}
+
+export interface ProductEngagement {
+  viewerSupported: boolean;
+  viewerRating: ProductRating | null;
+  reviews: ProductRating[];
+}
+
+export async function getProductEngagement(submissionId: string): Promise<ProductEngagement> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [supportResult, ratingsResult] = await Promise.all([
+    user
+      ? supabase
+          .from("product_supports")
+          .select("id")
+          .eq("submission_id", submissionId)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("product_ratings")
+      .select(
+        "id, submission_id, user_id, rating, body, strengths, improvements, experienced, created_at, updated_at, profiles!product_ratings_user_id_fkey(username, display_name, avatar_url, level)"
+      )
+      .eq("submission_id", submissionId)
+      .order("updated_at", { ascending: false }),
+  ]);
+
+  if (ratingsResult.error) {
+    console.error("[getProductEngagement] 查询产品评分失败:", ratingsResult.error);
+  }
+
+  const reviews = (ratingsResult.data ?? []).map((row) => {
+    const author = row.profiles as unknown as {
+      username: string | null;
+      display_name: string | null;
+      avatar_url: string | null;
+      level: number | null;
+    } | null;
+    return {
+      id: row.id,
+      submission_id: row.submission_id,
+      user_id: row.user_id,
+      rating: row.rating,
+      body: row.body,
+      strengths: row.strengths ?? [],
+      improvements: row.improvements ?? [],
+      experienced: row.experienced,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      author_username: author?.username ?? null,
+      author_display_name: author?.display_name ?? null,
+      author_avatar_url: author?.avatar_url ?? null,
+      author_level: author?.level ?? null,
+    } satisfies ProductRating;
+  });
+
+  return {
+    viewerSupported: Boolean(supportResult.data),
+    viewerRating: user ? reviews.find((review) => review.user_id === user.id) ?? null : null,
+    reviews,
+  };
 }
 
 export async function getCommentsForSubmission(submissionId: string): Promise<CommentWithAuthor[]> {
@@ -154,5 +238,5 @@ export async function getPublishedSubmissionsByUser(userId: string): Promise<Sub
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as SubmissionCard[];
+  return ((data ?? []) as SubmissionCard[]).map(normalizeSubmissionCard);
 }

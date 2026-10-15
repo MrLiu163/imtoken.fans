@@ -3,6 +3,10 @@
 
 export type SubmissionType = "product" | "idea";
 export type SubmissionStatus = "pending" | "published" | "rejected";
+export type ProductPlatform = "web" | "ios" | "android" | "browser_extension" | "telegram" | "hardware" | "other";
+export type ProductPricing = "free" | "freemium" | "paid" | "open_source";
+export type ProductLaunchStage = "live" | "public_beta" | "private_beta" | "coming_soon";
+export type MakerRelationship = "creator" | "team_member";
 export type UserRole = "user" | "member" | "admin";
 export type PermissionKey =
   | "auto_publish_submissions"
@@ -124,6 +128,36 @@ export interface SubmissionCard {
   votes_creative: number;
   sim_invest_usd: number;
   comment_count: number;
+  product_platforms: ProductPlatform[];
+  pricing_type: ProductPricing | null;
+  launch_stage: ProductLaunchStage | null;
+  maker_relationship: MakerRelationship | null;
+  maker_note: string | null;
+  feedback_prompt: string | null;
+  published_at: string | null;
+  support_count: number;
+  rating_count: number;
+  rating_average: number | null;
+}
+
+export type ProductRatingStrength = "useful" | "easy_to_use" | "design" | "innovation" | "security";
+export type ProductRatingImprovement = "reliability" | "usability" | "documentation" | "performance" | "support";
+
+export interface ProductRating {
+  id: string;
+  submission_id: string;
+  user_id: string;
+  rating: number;
+  body: string;
+  strengths: ProductRatingStrength[];
+  improvements: ProductRatingImprovement[];
+  experienced: boolean;
+  created_at: string;
+  updated_at: string;
+  author_username: string | null;
+  author_display_name: string | null;
+  author_avatar_url: string | null;
+  author_level: number | null;
 }
 
 export interface CommentWithAuthor {
