@@ -126,6 +126,8 @@ M1-A 已交付首页、Header/Footer、四板块导览、登录品牌小修、VS
 
 ## 最新执行记录
 
+2026-10-15 分支整合与本地复核：`codex/community-integration` 已保存首页横幅/排序/评论数更新，合入协作规则与 Vercel 说明；路线图冲突保留双方记录。i18n1092键、lint、build通过，本地固定3000运行，中英首页/四板块/详情/图片及横幅、排序、本地支持验证通过。品牌统一分支仅有未完成任务卡，不合入。远端 main 仍需其他维护者批准PR；不绕过保护，详见[整合记录](docs/tasks/community-integration.md)。
+
 2026-10-15 团队协作：按用户要求将 GitHub 仓库改为公开；全历史凭证复查未发现本地配置密钥或常见令牌。新增 `CONTRIBUTING.md`、PR 模板及 AGENTS 规则，要求开工同步主线、独立任务分支、每次提交前同步远端、冲突处理与 PR 审查。此次规则更新在 `codex/team-git-workflow` 分支交付；当前未跟踪的 `docs/design/community-banners/` 属其他工作，保留且不提交。仅协作设置与文档变更，不推进产品阶段。
 
 2026-10-15 Vercel 自动预览：已按用户授权创建 `simonliulius-projects/imtoken-fans`，连接 GitHub 本仓库；首次 main 构建与分支预览验证进行中。未配置数据库/钱包/AI 密钥，不修改数据；当前为虚拟内容演示，真实业务验收与产品 review 状态不变。详见[任务记录](docs/tasks/vercel-auto-preview.md)。
