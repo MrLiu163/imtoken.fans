@@ -12,7 +12,20 @@ import { normalizeTags } from "@/lib/tag-taxonomy";
 import { runModerationPipeline } from "@/lib/moderation/pipeline";
 import { MAX_SCREENSHOTS, MAX_SOCIAL_LINKS, MAX_TEAM_MEMBERS } from "@/lib/media";
 import { awardXpByRule } from "@/lib/xp";
-import type { SocialLink, TeamMember } from "@/lib/types";
+import {
+  isMakerRelationship,
+  isProductLaunchStage,
+  isProductPlatform,
+  isProductPricing,
+} from "@/lib/product-hunter";
+import type {
+  MakerRelationship,
+  ProductLaunchStage,
+  ProductPlatform,
+  ProductPricing,
+  SocialLink,
+  TeamMember,
+} from "@/lib/types";
 
 const COOLDOWN_HOURS = 24;
 
@@ -28,6 +41,12 @@ export interface CreateSubmissionInput {
   screenshotPaths?: string[];
   team?: TeamMember[];
   socialLinks?: SocialLink[];
+  productPlatforms?: ProductPlatform[];
+  pricingType?: ProductPricing;
+  launchStage?: ProductLaunchStage;
+  makerRelationship?: MakerRelationship;
+  makerNote?: string;
+  feedbackPrompt?: string;
 }
 
 function isValidHttpUrl(value: string): boolean {
@@ -47,8 +66,12 @@ export async function createSubmission(
   const tagline = input.tagline.trim();
   const description = input.description.trim();
 
-  if (title.length < 2 || title.length > 100) return { error: t("titleLength") };
-  if (tagline.length < 2 || tagline.length > 140) return { error: t("taglineLength") };
+  if (title.length < 2 || title.length > (input.type === "product" ? 60 : 100)) {
+    return { error: t(input.type === "product" ? "productTitleLength" : "titleLength") };
+  }
+  if (tagline.length < 2 || tagline.length > (input.type === "product" ? 60 : 140)) {
+    return { error: t(input.type === "product" ? "productTaglineLength" : "taglineLength") };
+  }
   if (description.length < 10 || description.length > 5000) return { error: t("descriptionLength") };
 
   const websiteUrl = input.websiteUrl?.trim() || null;
@@ -92,7 +115,24 @@ export async function createSubmission(
     return { error: t("screenshotNotOwned") };
   }
 
-  if (profile.submissionCooldownUntil && new Date(profile.submissionCooldownUntil) > new Date()) {
+  const productPlatforms = [...new Set(input.productPlatforms ?? [])].filter(isProductPlatform);
+  const pricingType = input.pricingType && isProductPricing(input.pricingType) ? input.pricingType : null;
+  const launchStage = input.launchStage && isProductLaunchStage(input.launchStage) ? input.launchStage : null;
+  const makerRelationship =
+    input.makerRelationship && isMakerRelationship(input.makerRelationship) ? input.makerRelationship : null;
+  const makerNote = input.makerNote?.trim().slice(0, 1200) || null;
+  const feedbackPrompt = input.feedbackPrompt?.trim().slice(0, 500) || null;
+
+  if (input.type === "product") {
+    if (!websiteUrl) return { error: t("productWebsiteRequired") };
+    if (!logoPath) return { error: t("productLogoRequired") };
+    if (screenshotPaths.length === 0) return { error: t("productScreenshotRequired") };
+    if (productPlatforms.length === 0) return { error: t("productPlatformRequired") };
+    if (!pricingType || !launchStage || !makerRelationship) return { error: t("productDetailsRequired") };
+  }
+
+  // 新的社区产品投稿走审核和重复检测，不沿用旧 imAihunt 对全部投稿统一施加的 24 小时冷却。
+  if (input.type === "idea" && profile.submissionCooldownUntil && new Date(profile.submissionCooldownUntil) > new Date()) {
     return {
       error: t("submitCooldown", {
         until: new Date(profile.submissionCooldownUntil).toLocaleString(await getLocale()),
@@ -104,8 +144,27 @@ export async function createSubmission(
   }
 
   const tags = normalizeTags(input.tags);
+  if (input.type === "product" && tags.length === 0) return { error: t("productTagRequired") };
 
   const supabase = await createClient();
+  const admin = createAdminClient();
+  if (input.type === "product" && websiteUrl) {
+    // 待审核投稿对其他普通用户不可见，因此必须用服务端管理员客户端做全量重复检测。
+    const { data: duplicate, error: duplicateError } = await admin
+      .from("submissions")
+      .select("id")
+      .eq("type", "product")
+      .eq("website_url", websiteUrl)
+      .is("deleted_at", null)
+      .limit(1)
+      .maybeSingle();
+    if (duplicateError) {
+      console.error("[createSubmission] 检查重复产品失败:", duplicateError);
+      return { error: t("submitFailed") };
+    }
+    if (duplicate) return { error: t("productAlreadySubmitted") };
+  }
+
   const { data: inserted, error } = await supabase
     .from("submissions")
     .insert({
@@ -121,13 +180,20 @@ export async function createSubmission(
       screenshot_paths: screenshotPaths,
       team,
       social_links: socialLinks,
+      product_platforms: input.type === "product" ? productPlatforms : [],
+      pricing_type: input.type === "product" ? pricingType : null,
+      launch_stage: input.type === "product" ? launchStage : null,
+      maker_relationship: input.type === "product" ? makerRelationship : null,
+      maker_note: input.type === "product" ? makerNote : null,
+      feedback_prompt: input.type === "product" ? feedbackPrompt : null,
     })
     .select("id")
     .single();
 
-  if (error || !inserted) return { error: error?.message ?? t("submitFailed") };
-
-  const admin = createAdminClient();
+  if (error || !inserted) {
+    console.error("[createSubmission] 创建投稿失败:", error);
+    return { error: t("submitFailed") };
+  }
 
   // admin 发帖天生免审；member 如果被单独授予了 auto_publish_submissions 权限，
   // 自己发的帖子也直接发布——这是叠加在全局审核模式之上的"个人特权"，不进队列。
@@ -144,8 +210,10 @@ export async function createSubmission(
 
   // submission_cooldown_until 现在只有 admin client 能写（见 0004_rls_hardening.sql），
   // 因为普通用户不该能自己清空/改写这一列来绕过冷却。
-  const cooldownUntil = new Date(Date.now() + COOLDOWN_HOURS * 60 * 60 * 1000).toISOString();
-  await admin.from("profiles").update({ submission_cooldown_until: cooldownUntil }).eq("id", profile.id);
+  if (input.type === "idea") {
+    const cooldownUntil = new Date(Date.now() + COOLDOWN_HOURS * 60 * 60 * 1000).toISOString();
+    await admin.from("profiles").update({ submission_cooldown_until: cooldownUntil }).eq("id", profile.id);
+  }
 
   // 「不审核」模式下 runModerationPipeline 已经同步把状态改成了 published；
   // 「人工」/「AI」模式这时候还是 pending（AI 的判定是异步的），查一下真实状态再告诉用户。

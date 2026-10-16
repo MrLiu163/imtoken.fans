@@ -13,6 +13,8 @@ import { CommentSection } from "@/components/comment-section";
 import { SubmissionStatsForm } from "@/components/submission-stats-form";
 import { UserBadgeInline } from "@/components/user-badge-inline";
 import { Avatar } from "@/components/avatar";
+import { ProductEngagement as ProductEngagementSection } from "@/components/product-engagement";
+import type { ProductEngagement } from "@/lib/submissions";
 
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
@@ -21,11 +23,13 @@ export async function SubmissionDetail({
   similar,
   comments,
   voteFlags,
+  productEngagement,
 }: {
   submission: SubmissionCard;
   similar: SubmissionCard[];
   comments: CommentWithAuthor[];
   voteFlags: { paid: boolean; creative: boolean };
+  productEngagement?: ProductEngagement;
 }) {
   const t = await getTranslations("submissionDetail");
   const tc = await getTranslations("common");
@@ -122,6 +126,11 @@ export async function SubmissionDetail({
             <a href="#comments" className="pb-2.5 transition-colors hover:text-ink">
               {t("comments")} ({submission.comment_count})
             </a>
+            {submission.type === "product" && (
+              <a href="#product-rating" className="pb-2.5 transition-colors hover:text-ink">
+                {t("ratings")} ({submission.rating_count})
+              </a>
+            )}
           </nav>
 
           <section id="overview" className="mt-6 scroll-mt-20">
@@ -139,6 +148,20 @@ export async function SubmissionDetail({
                     />
                   </a>
                 ))}
+              </div>
+            )}
+
+            {submission.type === "product" && submission.maker_note && (
+              <div className="mt-6 rounded-2xl border border-line bg-surface p-5">
+                <p className="font-mono text-[11px] uppercase tracking-wide text-faint">{t("makerNote")}</p>
+                <p className="mt-2 whitespace-pre-line text-sm leading-7 text-ink">{submission.maker_note}</p>
+              </div>
+            )}
+
+            {submission.type === "product" && submission.feedback_prompt && (
+              <div className="mt-4 rounded-2xl bg-brand-soft p-5">
+                <p className="font-semibold text-brand-ink">{t("feedbackPrompt")}</p>
+                <p className="mt-1 whitespace-pre-line text-sm leading-6 text-muted">{submission.feedback_prompt}</p>
               </div>
             )}
 
@@ -167,16 +190,33 @@ export async function SubmissionDetail({
               </div>
             )}
 
-            <VoteButtons
+            {submission.type === "idea" && (
+              <>
+                <VoteButtons
+                  submissionId={submission.id}
+                  isLoggedIn={isLoggedIn}
+                  initialVotesPaid={submission.votes_paid}
+                  initialVotesCreative={submission.votes_creative}
+                  initialVoted={voteFlags}
+                />
+                <InvestButton submissionId={submission.id} isLoggedIn={isLoggedIn} initialTotal={submission.sim_invest_usd} />
+              </>
+            )}
+          </section>
+
+          {submission.type === "product" && productEngagement && (
+            <ProductEngagementSection
               submissionId={submission.id}
               isLoggedIn={isLoggedIn}
-              initialVotesPaid={submission.votes_paid}
-              initialVotesCreative={submission.votes_creative}
-              initialVoted={voteFlags}
+              isOwner={isOwner}
+              initialSupportCount={submission.support_count}
+              initialSupported={productEngagement.viewerSupported}
+              ratingAverage={submission.rating_average}
+              ratingCount={submission.rating_count}
+              reviews={productEngagement.reviews}
+              viewerRating={productEngagement.viewerRating}
             />
-
-            <InvestButton submissionId={submission.id} isLoggedIn={isLoggedIn} initialTotal={submission.sim_invest_usd} />
-          </section>
+          )}
 
           {submission.team.length > 0 && (
             <section id="team" className="mt-12 scroll-mt-20">
@@ -221,8 +261,24 @@ export async function SubmissionDetail({
         {/* 侧边栏 */}
         <aside className="flex flex-col gap-5">
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <p className="font-mono text-[11px] uppercase tracking-wide text-faint">{t("totalVotes")}</p>
-            <p className="mt-1 text-3xl font-extrabold text-ink">{score}</p>
+            {submission.type === "product" ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-wide text-faint">{t("rating")}</p>
+                  <p className="mt-1 text-3xl font-extrabold text-ink">{submission.rating_average?.toFixed(1) ?? "—"}</p>
+                  <p className="mt-1 text-xs text-faint">{t("ratingCount", { count: submission.rating_count })}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-wide text-faint">{t("supports")}</p>
+                  <p className="mt-1 text-3xl font-extrabold text-ink">{submission.support_count}</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="font-mono text-[11px] uppercase tracking-wide text-faint">{t("totalVotes")}</p>
+                <p className="mt-1 text-3xl font-extrabold text-ink">{score}</p>
+              </>
+            )}
           </div>
 
           <div className="rounded-2xl border border-line bg-surface p-5">
@@ -249,7 +305,19 @@ export async function SubmissionDetail({
                 term={t("category")}
                 value={submission.type === "product" ? t("categoryProduct") : t("categoryIdea")}
               />
-              <InfoRow term={t("simInvestTotal")} value={usd.format(submission.sim_invest_usd)} />
+              {submission.type === "product" && submission.launch_stage && (
+                <InfoRow term={t("launchStage")} value={t(`stages.${submission.launch_stage}`)} />
+              )}
+              {submission.type === "product" && submission.pricing_type && (
+                <InfoRow term={t("pricing")} value={t(`pricingOptions.${submission.pricing_type}`)} />
+              )}
+              {submission.type === "product" && submission.product_platforms.length > 0 && (
+                <InfoRow
+                  term={t("platforms")}
+                  value={submission.product_platforms.map((platform) => t(`platformOptions.${platform}`)).join(" · ")}
+                />
+              )}
+              {submission.type === "idea" && <InfoRow term={t("simInvestTotal")} value={usd.format(submission.sim_invest_usd)} />}
               {submission.website_url && (
                 <InfoRow term={t("website")} value={submission.website_url.replace(/^https?:\/\//, "")} />
               )}

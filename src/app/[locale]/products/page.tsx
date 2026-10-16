@@ -1,48 +1,41 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getPublishedSubmissionCards } from "@/lib/submissions";
-import { SubmissionListRow } from "@/components/submission-list-row";
+import { ProductHunterExplorer } from "@/components/product-hunter-explorer";
 
 export default async function ProductsPage() {
-  const t = await getTranslations("products");
-  const products = (await getPublishedSubmissionCards("product")).sort(
-    (a, b) => b.votes_paid + b.votes_creative - (a.votes_paid + a.votes_creative)
-  );
+  const t = await getTranslations("productHunter");
+  const products = await getPublishedSubmissionCards("product");
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6">
-      <div className="max-w-3xl">
-        <h1 className="mb-5 text-2xl font-extrabold text-ink">{t("title")}</h1>
-
-        {products.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line bg-surface-2 p-8 text-center text-sm text-muted">
-            {t.rich("empty", {
-              submitLink: (chunks) => (
-                <Link href="/submit" className="font-medium text-brand-ink hover:underline">
-                  {chunks}
-                </Link>
-              ),
-            })}
+    <main className="community-page overflow-x-hidden" id="main-content" tabIndex={-1}>
+      <div className="community-shell py-7 sm:py-9">
+        <section className="mb-6 overflow-hidden rounded-2xl border border-line bg-white">
+          <div className="grid min-w-0 gap-6 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center">
+            <div className="min-w-0">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">{t("eyebrow")}</p>
+              <h1 className="mt-2 text-3xl font-extrabold text-ink sm:text-4xl">{t("title")}</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-muted sm:text-base">{t("subtitle")}</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs text-muted">
+                <span className="max-w-full rounded-full bg-surface-2 px-3 py-1.5 break-words">{t("principleUsable")}</span>
+                <span className="max-w-full rounded-full bg-surface-2 px-3 py-1.5 break-words">{t("principleRelevant")}</span>
+                <span className="max-w-full rounded-full bg-surface-2 px-3 py-1.5 break-words">{t("principleIndependent")}</span>
+              </div>
+            </div>
+            <div className="min-w-0 rounded-2xl bg-brand-soft p-5 break-words">
+              <h2 className="font-bold text-brand-ink">{t("ctaTitle")}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">{t("ctaBody")}</p>
+              <Link href="/submit" className="mt-4 inline-flex rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-ink">
+                {t("submitProduct")}
+              </Link>
+            </div>
           </div>
-        ) : (
-          <div className="flex flex-col divide-y divide-line">
-            {products.map((submission, i) => (
-              <SubmissionListRow key={submission.id} submission={submission} rank={i + 1} showTypeBadge={false} />
-            ))}
-          </div>
-        )}
-
-        <section className="mt-16 rounded-2xl border border-dashed border-line bg-surface-2 p-6 text-center">
-          <p className="font-semibold text-ink">{t("ctaTitle")}</p>
-          <p className="mt-1 text-sm text-muted">{t("ctaSubtitle")}</p>
-          <Link
-            href="/submit"
-            className="mt-4 inline-block rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-ink"
-          >
-            {t("ctaButton")}
-          </Link>
         </section>
+
+        <ProductHunterExplorer products={products} />
+
+        <p className="mx-auto mt-5 max-w-3xl text-center text-xs leading-6 text-faint">{t("disclaimer")}</p>
       </div>
-    </div>
+    </main>
   );
 }

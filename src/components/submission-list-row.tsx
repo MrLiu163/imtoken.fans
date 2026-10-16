@@ -20,7 +20,7 @@ export function SubmissionListRow({
   const t = useTranslations("submissionRow");
   const locale = useLocale();
   const href = `/${submission.type === "product" ? "products" : "ideas"}/${submission.id}`;
-  const score = submission.votes_paid + submission.votes_creative;
+  const score = submission.type === "product" ? submission.support_count : submission.votes_paid + submission.votes_creative;
 
   return (
     <Link href={href} className="group flex items-center gap-3 py-3 sm:gap-4">
@@ -78,7 +78,11 @@ export function SubmissionListRow({
           value={submission.comment_count}
           title={t("comments", { count: submission.comment_count })}
         />
-        <StatBox icon={<UpvoteIcon />} value={score} title={t("votes", { count: score })} />
+        <StatBox
+          icon={<UpvoteIcon />}
+          value={score}
+          title={submission.type === "product" ? t("supports", { count: score }) : t("votes", { count: score })}
+        />
       </div>
     </Link>
   );
