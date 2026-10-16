@@ -127,6 +127,8 @@ M1-A 已交付首页、Header/Footer、四板块导览、登录品牌小修、VS
 
 ## 最新执行记录
 
+2026-10-16 Jack反馈真实接入：合入最新main67a5b53登录/数据库安全修复，新增0025反馈专用迁移及RPC；统一「发帖」产品反馈模块字段，真实Admin编辑/审计、IDEA和评论支持、合并/撤销持久化契约；移除虚构IDEA种子及假管理员入口。i18n1432键、lint、tsc、Webpack构建、主线6项安全回归、模拟PG71项及独立会话/草稿审查通过；浏览器表单/缺配置失败路径/手机通过。目标Supabase0025未执行，真实账号保存刷新和多连接并发待部署验证；通知/视频/旧审核队列未接，不标完整M3验收，见[任务记录](docs/tasks/product-feedback-persistence.md)。
+
 2026-10-16 Jack产品反馈主线整合：从最新`origin/main`（e1c40b1）创建`codex/jack-product-cooperation-feedback`，将IDEA原型嵌入「产品反馈」分类，保留主线全部/社区产品/公告和产品猎手入口；分类切换保留本地状态。i18n1374键、lint、tsc、Webpack构建通过，浏览器中英/390px/分类与票数保留验证，见[整合任务](docs/tasks/jack-product-cooperation-feedback.md)。未上线、未写库、未合并main，等待review。
 
 2026-10-15 分支整合与本地复核：`codex/community-integration` 已保存首页横幅/排序/评论数更新，合入协作规则与 Vercel 说明；路线图冲突保留双方记录。i18n1092键、lint、build通过，本地固定3000运行，中英首页/四板块/详情/图片及横幅、排序、本地支持验证通过。品牌统一分支仅有未完成任务卡，不合入。远端 main 仍需其他维护者批准PR；不绕过保护，详见[整合记录](docs/tasks/community-integration.md)。

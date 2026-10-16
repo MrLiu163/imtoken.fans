@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { FEEDBACK_CHANGED } from "@/lib/feedback";
 import { CooperationPreview } from "@/components/cooperation-preview";
-import { Fragment, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { DEMO_POSTS, SECTION_CATEGORIES, hasDemoSupport, compareDemoPopularity, demoSeedComments, type DemoComment, type CommunitySection, type DemoPost } from "@/lib/community-demo";
@@ -64,13 +65,21 @@ function HomeSpotlight() {
   return <div className="community-spotlight"><section className={`community-carousel community-carousel-${active}`} role="region" aria-roledescription={t("carouselRole")} aria-label={t("carouselTitle")} onKeyDown={(event) => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1); } }}><div className="community-carousel-art"><Image src={`/images/community-banners/${banner}.png`} alt="" fill sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 480px" /></div><div className="community-carousel-top"><span>{t(`categories.${post.category}`)}</span></div><Link href={postHref(post)} className="community-carousel-link"><h1>{t(`posts.${post.id}.title`)}</h1><p>{t(`posts.${post.id}.excerpt`)}</p><span className="community-carousel-cta">{t("readMore")} <span aria-hidden>↗</span></span></Link><div className="community-carousel-controls"><button type="button" onClick={() => move(-1)} aria-label={t("previousSlide")}>←</button><div className="community-carousel-dots">{slides.map((slide, index) => <button type="button" key={slide.id} aria-label={t("goToSlide", { index: index + 1 })} aria-current={index === active ? "true" : undefined} onClick={() => setActive(index)}><span /></button>)}</div><span className="sr-only" aria-live="polite">{t("slidePosition", { index: active + 1, count: slides.length })}</span><button type="button" onClick={() => move(1)} aria-label={t("nextSlide")}>→</button></div></section><section className="community-panel community-home-popular"><div className="community-panel-heading"><h2>{t("popularTitle")}</h2><button type="button" onClick={() => setBatch((value) => 1 - value)}>{t("refreshPopular")}</button></div><ol className="community-popular-list">{popular.map((item, index) => <li key={item.id}><span aria-hidden>{batch * 6 + index + 1}</span><Link href={postHref(item)}>{t(`posts.${item.id}.title`)}</Link></li>)}</ol></section></div>;
 }
 
-function DemoFeed({ section }: { section?: CommunitySection }) {
+function DemoFeed({ section, initialCategory = "all", initialId = null }: { section?: CommunitySection; initialCategory?: string; initialId?: string | null }) {
   const t = useTranslations("community");
+  const f = useTranslations("feedbackLive");
   const [sort, setSort] = useState<SortMode>(section ? "latest" : "recommended");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(initialCategory);
+  useEffect(() => {
+    if (section !== "feedback") return;
+    const change = () => setCategory("wallet");
+    window.addEventListener(FEEDBACK_CHANGED, change);
+    return () => window.removeEventListener(FEEDBACK_CHANGED, change);
+  }, [section]);
+  useEffect(() => { const timer = setTimeout(() => setCategory(initialCategory), 0); return () => clearTimeout(timer); }, [initialCategory]);
   const [status, setStatus] = useState("all");
   const [visible, setVisible] = useState(8);
-  const filtered = DEMO_POSTS.filter((post) => (!section || post.section === section) && (category === "all" || post.category === category) && (status === "all" || post.status === status) && (sort !== "recommended" || post.featured === true)).sort((a, b) => sort === "popular" ? compareDemoPopularity(a, b) : b.createdAt.localeCompare(a.createdAt));
+  const filtered = DEMO_POSTS.filter((post) => !(post.section === "feedback" && post.category === "wallet") && (!section || post.section === section) && (category === "all" || post.category === category) && (status === "all" || post.status === status) && (sort !== "recommended" || post.featured === true)).sort((a, b) => sort === "popular" ? compareDemoPopularity(a, b) : b.createdAt.localeCompare(a.createdAt));
   const feed = <div className={`community-layout ${section === "discussion" ? "community-discussion-layout" : section ? "" : "community-home-layout"}`}><section className="community-panel community-feed-panel" aria-label={t("feedLabel")}><div className="community-feed-heading"><SortTabs value={sort} onChange={(next) => { setSort(next); setVisible(8); }} /><span>{t("exampleCount", { count: filtered.length })}</span></div>{section && section !== "feedback" && <div className="community-filter-row" aria-label={t("categoryFilter")}><button type="button" aria-pressed={category === "all"} onClick={() => { setCategory("all"); setStatus("all"); setVisible(8); }}>{t("all")}</button>{SECTION_CATEGORIES[section].map((value) => <button key={value} type="button" aria-pressed={category === value} onClick={() => { setCategory(value); setStatus("all"); setVisible(8); }}>{t(`categories.${value}`)}</button>)}</div>}{filtered.length ? <div>{filtered.slice(0, visible).map((post, index) => <Fragment key={post.id}><PostRow post={post} />{index === 3 && !section && <SafetyNote inline />}</Fragment>)}</div> : <div className="community-empty"><CommunityGlyph section={section ?? "discussion"} /><h2>{t("empty")}</h2><button type="button" className="community-button community-button-outline" onClick={() => { setCategory("all"); setStatus("all"); setSort("latest"); }}>{t("showAll")}</button></div>}{filtered.length > visible && <button type="button" className="community-load-more" onClick={() => setVisible((count) => count + 8)}>{t("loadMore")}<span aria-hidden>↓</span></button>}</section><aside className={`community-sidebar community-simple-sidebar ${!section || section === "discussion" ? "community-personas-sidebar" : ""}`}>{!section || section === "discussion" ? <TokenPersonasCard /> : <ParticipationCard />}<SafetyNote /></aside></div>;
   if (section !== "feedback") return feed;
   return <>
@@ -78,8 +87,9 @@ function DemoFeed({ section }: { section?: CommunitySection }) {
       <button type="button" aria-pressed={category === "all"} onClick={() => { setCategory("all"); setStatus("all"); setVisible(8); }}>{t("all")}</button>
       {SECTION_CATEGORIES.feedback.map((value) => <button key={value} type="button" aria-pressed={category === value} onClick={() => { setCategory(value); setStatus("all"); setVisible(8); }}>{t(`categories.${value}`)}</button>)}
     </div>
+    {category === "all" && <section className="community-panel community-history-note"><span>{f("allEntry")}</span><button type="button" className="community-button community-button-outline" onClick={() => setCategory("wallet")}>{f("heading")} ↗</button></section>}
     <div hidden={category === "wallet"}>{feed}</div>
-    <div hidden={category !== "wallet"}><CooperationPreview embedded /></div>
+    <div hidden={category !== "wallet"}><CooperationPreview embedded initialId={initialId} /></div>
   </>;
 }
 
@@ -87,9 +97,9 @@ export function CommunityHome() {
   return <div className="community-page community-home" id="main-content" tabIndex={-1}><div className="community-shell"><HomeSpotlight /><DemoFeed /></div></div>;
 }
 
-export function CommunityBoard({ section }: { section: CommunitySection }) {
+export function CommunityBoard({ section, initialCategory = "all", initialId = null }: { section: CommunitySection; initialCategory?: string; initialId?: string | null }) {
   const t = useTranslations("community");
-  return <div className="community-page" id="main-content" tabIndex={-1}><div className="community-shell"><nav className="community-breadcrumb" aria-label={t("breadcrumb")}><Link href="/">{t("home")}</Link><span aria-hidden>/</span><span>{t(`sections.${section}.name`)}</span></nav><div className="community-board-heading"><span className={`community-entry-icon community-entry-${section}`}><CommunityGlyph section={section} /></span><div><h1>{t(`sections.${section}.name`)}</h1><p>{t(`sections.${section}.description`)}</p></div><ComposeDemoButton section={section} /></div>{section === "feedback" && <div className="community-history-note"><span>{t("historyNote")}</span><Link href="/products">{t("historicalProducts")} ↗</Link><Link href="/ideas">{t("historicalIdeas")} ↗</Link></div>}<DemoFeed section={section} /></div></div>;
+  return <div className="community-page" id="main-content" tabIndex={-1}><div className="community-shell"><nav className="community-breadcrumb" aria-label={t("breadcrumb")}><Link href="/">{t("home")}</Link><span aria-hidden>/</span><span>{t(`sections.${section}.name`)}</span></nav><div className="community-board-heading"><span className={`community-entry-icon community-entry-${section}`}><CommunityGlyph section={section} /></span><div><h1>{t(`sections.${section}.name`)}</h1><p>{t(`sections.${section}.description`)}</p></div><ComposeDemoButton section={section} /></div>{section === "feedback" && <div className="community-history-note"><span>{t("historyNote")}</span><Link href="/products">{t("historicalProducts")} ↗</Link><Link href="/ideas">{t("historicalIdeas")} ↗</Link></div>}<DemoFeed section={section} initialCategory={initialCategory} initialId={initialId} /></div></div>;
 }
 
 function DemoComments({ post, onCountChange }: { post: DemoPost; onCountChange: (count: number) => void }) {

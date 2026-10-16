@@ -1,148 +1,130 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useAuth } from "@/lib/auth-context";
+import { saveFeedbackDraft, takeFeedbackDraft } from "@/lib/feedback-drafts";
 import { Link } from "@/i18n/navigation";
-import { IDEA_MODULES, IDEA_STATES, IDEA_MARKS, VIEWER, initialCooperationDemo, ideaGroup, ideaVoters, setIdeaVote, mergePair, undoMerge, type DemoIdea, type IdeaComment, type IdeaModule, type IdeaState, type IdeaMark } from "@/lib/cooperation-demo";
+import { readFeedback, writeFeedback } from "@/app/actions/feedback";
+import { FEEDBACK_MODULES, FEEDBACK_STATES, FEEDBACK_MARKS, FEEDBACK_CHANGED, FEEDBACK_COMPOSE, type FeedbackPost, type FeedbackComment, type FeedbackData, type FeedbackEdit, type FeedbackMark, type FeedbackModule, type FeedbackState } from "@/lib/feedback";
 import styles from "./cooperation-preview.module.css";
 
-function IdeaEditor({ idea, title, description, onSave, onCancel }: { idea: DemoIdea; title: string; description: string; onSave: (change: { title: string; description: string; module: IdeaModule; status: IdeaState; mark: IdeaMark }) => void; onCancel: () => void }) {
-  const t = useTranslations("cooperation");
-  const [draft, setDraft] = useState({ title, description, module: idea.module, status: idea.status, mark: idea.mark });
-  return <form className={styles.editor} onSubmit={(event) => { event.preventDefault(); if (draft.title.trim() && draft.description.trim()) onSave({ ...draft, title: draft.title.trim(), description: draft.description.trim() }); }}>
-    <h3>{t("editIdea")}</h3>
-    <label>{t("titleLabel")}<input required maxLength={120} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
-    <label>{t("descriptionLabel")}<textarea required rows={5} maxLength={5000} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></label>
-    <div className={styles.fields}><label>{t("moduleLabel")}<select value={draft.module} onChange={(e) => setDraft({ ...draft, module: e.target.value as IdeaModule })}>{IDEA_MODULES.map((item) => <option key={item} value={item}>{t(`modules.${item}`)}</option>)}</select></label>
-    <label>{t("statusLabel")}<select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value as IdeaState })}>{IDEA_STATES.map((item) => <option key={item} value={item}>{t(`states.${item}`)}</option>)}</select></label>
-    <label>{t("markLabel")}<select value={draft.mark} onChange={(e) => setDraft({ ...draft, mark: e.target.value as IdeaMark })}>{IDEA_MARKS.map((item) => <option key={item} value={item}>{t(`marks.${item}`)}</option>)}</select></label></div>
-    <div className={styles.actions}><button className={styles.primary} type="submit" disabled={!draft.title.trim() || !draft.description.trim()}>{t("save")}</button><button type="button" onClick={onCancel}>{t("cancel")}</button></div>
+function IdeaEditor({ idea, busy, onSave, onCancel }: { idea: FeedbackPost; busy: boolean; onSave: (change: FeedbackEdit, version: number) => Promise<void>; onCancel: () => void }) {
+  const c = useTranslations("cooperation"); const t = useTranslations("feedbackLive");
+  const version = useRef(idea.version);
+  const [draft, setDraft] = useState<FeedbackEdit>({ title: idea.title, description: idea.description, module: idea.module, status: idea.status, mark: idea.mark, visibility: idea.visibility });
+  return <form className={styles.editor} onSubmit={(event) => { event.preventDefault(); void onSave(draft, version.current); }}>
+    <h3>{c("editIdea")}</h3><label>{c("titleLabel")}<input required minLength={2} maxLength={120} disabled={busy} value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><label>{c("descriptionLabel")}<textarea required minLength={2} maxLength={5000} disabled={busy} rows={5} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
+    <div className={styles.fields}><label>{c("moduleLabel")}<select disabled={busy} value={draft.module} onChange={(event) => setDraft({ ...draft, module: event.target.value as FeedbackModule })}>{FEEDBACK_MODULES.map((value) => <option key={value} value={value}>{c(`modules.${value}`)}</option>)}</select></label><label>{c("statusLabel")}<select disabled={busy} value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as FeedbackState })}>{FEEDBACK_STATES.map((value) => <option key={value} value={value}>{c(`states.${value}`)}</option>)}</select></label><label>{c("markLabel")}<select disabled={busy} value={draft.mark} onChange={(event) => setDraft({ ...draft, mark: event.target.value as FeedbackMark })}>{FEEDBACK_MARKS.map((value) => <option key={value} value={value}>{c(`marks.${value}`)}</option>)}</select></label></div>
+    <label>{t("visibility")}<select disabled={busy} value={draft.visibility} onChange={(event) => setDraft({ ...draft, visibility: event.target.value as "published" | "hidden" })}><option value="published">{t("public")}</option><option value="hidden">{t("hidden")}</option></select></label>
+    <div className={styles.actions}><button className={styles.primary} disabled={busy || draft.title.trim().length < 2 || draft.description.trim().length < 2}>{busy ? t("saving") : c("save")}</button><button type="button" disabled={busy} onClick={onCancel}>{c("cancel")}</button></div>
   </form>;
 }
 
-export function CooperationPreview({ embedded = false }: { embedded?: boolean }) {
-  const Container = embedded ? "section" : "main";
-  const t = useTranslations("cooperation");
-  const format = useFormatter();
-  const [data, setData] = useState(initialCooperationDemo);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [admin, setAdmin] = useState(false);
-  const [view, setView] = useState<"list" | "progress">("list");
-  const [query, setQuery] = useState("");
-  const [module, setModule] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [sort, setSort] = useState("popular");
-  const [draft, setDraft] = useState({ title: "", description: "", module: "wallet" as IdeaModule });
-  const [editing, setEditing] = useState(false);
-  const [mergeId, setMergeId] = useState("");
-  const [mergePreview, setMergePreview] = useState(false);
-  const [commentBody, setCommentBody] = useState("");
-  const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [commentEdit, setCommentEdit] = useState<{ id: string; body: string; mark: IdeaMark } | null>(null);
-  const [notice, setNotice] = useState("");
-  const sequence = useRef(0);
-  const detailHeading = useRef<HTMLHeadingElement>(null);
-  const commentInput = useRef<HTMLTextAreaElement>(null);
-  const titleInput = useRef<HTMLInputElement>(null);
-  const title = (idea: DemoIdea) => idea.title ?? t(`seeds.${idea.seed}.title`);
-  const description = (idea: DemoIdea) => idea.description ?? t(`seeds.${idea.seed}.description`);
-  const body = (comment: IdeaComment) => comment.body ?? t(`comments.${comment.seed}`);
-  const rootIds = data.ideas.filter((idea) => !data.merges.some((merge) => merge.source === idea.id));
-  const active = data.ideas.find((idea) => idea.id === selected);
-  const group = active ? ideaGroup(data, active.id) : [];
-  const comments = data.comments.filter((comment) => group.includes(comment.ideaId));
-  const currentMerge = data.merges.find((merge) => merge.target === active?.id);
-  const mergeChoices = active && !data.merges.some((merge) => [merge.source, merge.target].includes(active.id)) ? rootIds.filter((idea) => idea.id !== active.id && !data.merges.some((merge) => [merge.source, merge.target].includes(idea.id))) : [];
-  const mergeCandidate = mergeChoices.find((idea) => idea.id === mergeId);
-  const mergeTarget = active && mergeCandidate ? [active, mergeCandidate].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))[0] : null;
-  const visible = rootIds.filter((idea) => (module === "all" || idea.module === module) && (status === "all" || idea.status === status) && `${title(idea)} ${description(idea)}`.toLowerCase().includes(query.toLowerCase().trim())).sort((a, b) => sort === "popular" ? ideaVoters(data, b.id).length - ideaVoters(data, a.id).length || a.createdAt.localeCompare(b.createdAt) : sort === "oldest" ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt));
-  const terms = draft.title.toLowerCase().match(/[a-z0-9]{3,}|[\u4e00-\u9fff]{2,}/g)?.flatMap((term) => /[\u4e00-\u9fff]/.test(term) ? Array.from({ length: term.length - 1 }, (_, index) => term.slice(index, index + 2)) : [term]) ?? [];
-  const similar = terms.length ? rootIds.filter((idea) => terms.some((term) => `${title(idea)} ${description(idea)}`.toLowerCase().includes(term))).slice(0, 3) : [];
-  function openIdea(id: string) {
-    setSelected(ideaGroup(data, id)[0]); setEditing(false); setMergeId(""); setMergePreview(false); setReplyTo(null); setCommentBody(""); setCommentEdit(null);
-    requestAnimationFrame(() => detailHeading.current?.focus());
+/** Historical filename retained; the active component uses only authenticated real RPCs. */
+export function CooperationPreview(props: { embedded?: boolean; initialId?: string | null }) {
+  const { user, isAdmin, loading, sessionEpoch } = useAuth();
+  const t = useTranslations("feedbackLive");
+  if (loading) return <p role="status">{t("loading")}</p>;
+  // Identity keys synchronously unmount private data/editors before a new account renders.
+  return <LiveFeedback key={`${user?.id ?? "anonymous"}:${isAdmin}:${sessionEpoch}`} initialId={props.initialId ?? null} owner={user?.id ?? null} />;
+}
+function LiveFeedback({ initialId, owner }: { initialId: string | null; owner: string | null }) {
+  const c = useTranslations("cooperation"); const t = useTranslations("feedbackLive"); const format = useFormatter();
+  const [data, setData] = useState<FeedbackData | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialId);
+  const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(""); const [errorCode, setErrorCode] = useState(""); const [notice, setNotice] = useState("");
+  const [query, setQuery] = useState(""); const [module, setModule] = useState("all"); const [status, setStatus] = useState("all"); const [sort, setSort] = useState("latest");
+  const [offset, setOffset] = useState(0); const [commentOffset, setCommentOffset] = useState(0); const [reload, setReload] = useState(0);
+  const [view, setView] = useState<"list" | "progress">("list"); const [editing, setEditing] = useState(false);
+  const [commentBody, setCommentBody] = useState(""); const [replyTo, setReplyTo] = useState<FeedbackComment | null>(null);
+  const [commentEdit, setCommentEdit] = useState<{ comment: FeedbackComment; body: string; mark: FeedbackMark; visibility: "published" | "hidden" } | null>(null);
+  const [mergeQuery, setMergeQuery] = useState(""); const [mergeChoices, setMergeChoices] = useState<FeedbackPost[]>([]); const [mergeChoice, setMergeChoice] = useState<FeedbackPost | null>(null);
+  const [mergePreview, setMergePreview] = useState<{ id: string; support_count: number } | null>(null);
+  const commentRequest = useRef<string | null>(null); const commentInput = useRef<HTMLTextAreaElement>(null);
+  const active = data?.selected; const admin = data?.viewer.can_manage === true;
+  const clearEditor = useCallback(() => { setEditing(false); setCommentEdit(null); setReplyTo(null); setCommentBody(""); commentRequest.current = null; setMergeChoice(null); setMergePreview(null); }, []);
+  const openIdea = useCallback((id: string | null) => {
+    setSelected(id); setCommentOffset(0); clearEditor(); setNotice("");
+    const url = new URL(window.location.href); url.searchParams.set("category", "wallet"); if (id) url.searchParams.set("idea", id); else url.searchParams.delete("idea"); window.history.replaceState(window.history.state, "", url);
+  }, [clearEditor]);
+  useEffect(() => {
+    const timer = setTimeout(() => { if (initialId) setSelected(initialId); }, 0);
+    return () => clearTimeout(timer);
+  }, [initialId]);
+  useEffect(() => {
+    const changed = (event: Event) => { const id = (event as CustomEvent<{ id?: string }>).detail?.id; if (id) { setSelected(id); setCommentOffset(0); clearEditor(); } setReload((value) => value + 1); };
+    window.addEventListener(FEEDBACK_CHANGED, changed); return () => window.removeEventListener(FEEDBACK_CHANGED, changed);
+  }, [clearEditor]);
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setLoading(true); setError(""); setErrorCode("");
+      try {
+        const result = await readFeedback({ id: selected, query, module, status, sort, offset, commentOffset });
+        if (cancelled) return;
+        if (result.ok && result.data.viewer.user_id === owner) setData(result.data); else if (result.ok) { setData(null); setError(t("sessionChanged")); setErrorCode("session_changed"); } else { setData(null); setError(result.error); setErrorCode(result.code); }
+      } catch { if (!cancelled) { setData(null); setError(t("unexpected")); } }
+      finally { if (!cancelled) setLoading(false); }
+    }, query ? 300 : 0);
+    return () => { clearTimeout(timer); cancelled = true; };
+  }, [selected, query, module, status, sort, offset, commentOffset, reload, t, owner]);
+  useEffect(() => {
+    let stale = false;
+    if (!active || !admin || active.merge_id) return;
+    const timer = setTimeout(async () => { const result = await readFeedback({ query: mergeQuery, sort: "oldest" }); if (!stale && result.ok && result.data.viewer.user_id === owner) setMergeChoices(result.data.posts.filter((post) => post.id !== active.id && !post.merge_id && post.visibility === "published")); }, 300);
+    return () => { stale = true; clearTimeout(timer); };
+  }, [active, admin, mergeQuery, owner]);
+  const mutate = async (action: Parameters<typeof writeFeedback>[0], payload: Record<string, unknown>): Promise<boolean> => {
+    if (busy) return false; setBusy(true); setError(""); setErrorCode(""); setNotice("");
+    try {
+      const result = await writeFeedback(action, { ...payload, expected_user_id: owner });
+      if (!result.ok) { setError(result.error); setErrorCode(result.code); return false; }
+      if (selected || ["merge", "unmerge"].includes(action)) setSelected(result.data.id); setReload((value) => value + 1); setNotice(t("saved")); return true;
+    } catch { setError(t("unexpected")); return false; } finally { setBusy(false); }
+  };
+  async function submitComment(event: FormEvent) {
+    event.preventDefault(); if (!active || commentBody.trim().length < 2) return;
+    commentRequest.current ??= crypto.randomUUID();
+    if (await mutate("comment", { id: active.id, body: commentBody, parent_id: replyTo?.id ?? null, request_id: commentRequest.current })) { setCommentBody(""); setReplyTo(null); commentRequest.current = null; setCommentOffset(Math.floor((data?.comment_total ?? 0) / 50) * 50); }
   }
-  function vote(idea: DemoIdea) { setData((current) => setIdeaVote(current, idea.id, !ideaVoters(current, idea.id).includes(VIEWER))); }
-  function submitIdea(event: FormEvent) {
-    event.preventDefault();
-    if (!draft.title.trim() || !draft.description.trim()) return;
-    const id = `local-${++sequence.current}`;
-    setData((current) => ({ ...current, ideas: [...current.ideas, { id, title: draft.title.trim(), description: draft.description.trim(), author: VIEWER, createdAt: new Date().toISOString(), module: draft.module, status: "inbox", mark: "none", voters: [], revisions: [] }] }));
-    setDraft({ title: "", description: "", module: "wallet" }); setSelected(id); setEditing(false); setMergeId(""); setMergePreview(false); setReplyTo(null); setCommentBody(""); setCommentEdit(null); setNotice(t("created"));
-    requestAnimationFrame(() => detailHeading.current?.focus());
+  async function previewMerge() {
+    if (!active || !mergeChoice || busy) return; setBusy(true); setError("");
+    try { const result = await writeFeedback("preview_merge", { id: active.id, version: active.version, other_id: mergeChoice.id, other_version: mergeChoice.version, expected_user_id: owner }); if (result.ok) setMergePreview({ id: result.data.id, support_count: result.data.support_count ?? 0 }); else { setError(result.error); setErrorCode(result.code); } } catch { setError(t("unexpected")); } finally { setBusy(false); }
   }
-  function submitComment(event: FormEvent) {
-    event.preventDefault(); if (!active || !commentBody.trim()) return;
-    const parent = data.comments.find((comment) => comment.id === replyTo && group.includes(comment.ideaId));
-    if (replyTo && !parent) { setReplyTo(null); setNotice(t("replyExpired")); return; }
-    const comment: IdeaComment = { id: `comment-${++sequence.current}`, ideaId: parent?.ideaId ?? active.id, parent: parent?.id, body: commentBody.trim(), author: VIEWER, voters: [], mark: "none", revisions: [] };
-    setData((current) => ({ ...current, comments: [...current.comments, comment] })); setCommentBody(""); setReplyTo(null); setNotice(t("commentAdded"));
+  const author = (name: string | null) => name || t("member");
+  const resetFilters = () => { setQuery(""); setModule("all"); setStatus("all"); setOffset(0); };
+  const compose = () => window.dispatchEvent(new Event(FEEDBACK_COMPOSE));
+  const signInHref = `/auth/sign-in?redirect=${encodeURIComponent(`/community/feedback?category=wallet${selected ? `&idea=${selected}&resumeComment=1` : ""}`)}`;
+  function renderRow(post: FeedbackPost) {
+    return <article key={post.id} className={styles.row}><button type="button" className={styles.vote} disabled={busy} aria-pressed={post.supported} aria-label={c("ideaVote", { title: post.title, count: post.support_count })} onClick={() => void mutate("vote", { id: post.id, supported: !post.supported })}><span aria-hidden>△</span><strong>{format.number(post.support_count)}</strong></button><div className={styles.rowMain}><div className={styles.tags}><span className={styles.status}>{c(`states.${post.status}`)}</span><span>{c(`modules.${post.module}`)}</span>{post.mark !== "none" && <span className={styles.tag}>{c(`marks.${post.mark}`)}</span>}{post.visibility === "hidden" && <span>{t("hidden")}</span>}</div><button type="button" className={styles.ideaTitle} onClick={() => openIdea(post.id)}>{post.title}</button><p className={styles.excerpt}>{post.description}</p><div className={styles.meta}><span>{author(post.author_name)}</span><time dateTime={post.created_at}>{format.dateTime(new Date(post.created_at), { month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</time><span>{c("commentCount", { count: post.comment_count })}</span>{post.merge_id && <span>{c("mergedBadge")}</span>}</div></div></article>;
   }
-  function renderComment(comment: IdeaComment, depth = 0) {
-    const origin = data.ideas.find((idea) => idea.id === comment.ideaId)!;
-    return <li key={comment.id} className={styles.comment}>
-      <div className={styles.meta}><strong>{t(`authors.${comment.author}`)}</strong><span>{t("exampleUser")}</span>{comment.mark !== "none" && <span className={styles.tag}>{t(`marks.${comment.mark}`)}</span>}{comment.revisions.length > 0 && <span>{t("edited", { count: comment.revisions.length })}</span>}</div>
-      {group.length > 1 && <p className={styles.origin}>{t("origin", { title: title(origin) })}</p>}
-      <p className={styles.body}>{body(comment)}</p>
-      <div className={styles.actions}><button type="button" aria-pressed={comment.voters.includes(VIEWER)} aria-label={t("commentVote", { count: comment.voters.length })} onClick={() => setData((current) => ({ ...current, comments: current.comments.map((item) => item.id !== comment.id ? item : { ...item, voters: item.voters.includes(VIEWER) ? item.voters.filter((voter) => voter !== VIEWER) : [...item.voters, VIEWER] }) }))}>△ {format.number(comment.voters.length)}</button><button type="button" onClick={() => { setReplyTo(comment.id); commentInput.current?.focus(); }}>{t("reply")}</button>{admin && <button type="button" onClick={() => setCommentEdit({ id: comment.id, body: body(comment), mark: comment.mark })}>{t("editComment")}</button>}</div>
-      {admin && commentEdit?.id === comment.id && <form className={styles.editor} onSubmit={(event) => { event.preventDefault(); if (!commentEdit.body.trim()) return; setData((current) => ({ ...current, comments: current.comments.map((item) => item.id === comment.id ? { ...item, body: commentEdit.body.trim(), mark: commentEdit.mark, revisions: [...item.revisions, { body: body(item), mark: item.mark }] } : item) })); setCommentEdit(null); setNotice(t("saved")); }}>
-        <label>{t("commentLabel")}<textarea required maxLength={2000} value={commentEdit.body} onChange={(event) => setCommentEdit({ ...commentEdit, body: event.target.value })} /></label>
-        <label>{t("markLabel")}<select value={commentEdit.mark} onChange={(event) => setCommentEdit({ ...commentEdit, mark: event.target.value as IdeaMark })}>{IDEA_MARKS.map((mark) => <option key={mark} value={mark}>{t(`marks.${mark}`)}</option>)}</select></label>
-        <div className={styles.actions}><button className={styles.primary} disabled={!commentEdit.body.trim()}>{t("save")}</button><button type="button" onClick={() => setCommentEdit(null)}>{t("cancel")}</button></div>
-      </form>}
-      {comment.revisions.length > 0 && <details className={styles.history}><summary>{t("history")}</summary>{comment.revisions.map((previous, index) => <p className={styles.body} key={index}>{t("revision", { index: index + 1 })} · {t(`marks.${previous.mark}`)}{String.fromCharCode(10)}{previous.body}</p>)}</details>}
-      {data.comments.some((item) => item.parent === comment.id) && <ul className={depth < 2 ? styles.replies : styles.flatReplies}>{data.comments.filter((item) => item.parent === comment.id).map((item) => renderComment(item, depth + 1))}</ul>}
-    </li>;
-  }
-  function renderRow(idea: DemoIdea) {
-    const voters = ideaVoters(data, idea.id);
-    const count = data.comments.filter((comment) => ideaGroup(data, idea.id).includes(comment.ideaId)).length;
-    return <article key={idea.id} className={styles.row}>
-      <button type="button" className={styles.vote} aria-pressed={voters.includes(VIEWER)} aria-label={t("ideaVote", { title: title(idea), count: voters.length })} onClick={() => vote(idea)}><span aria-hidden>△</span><strong>{format.number(voters.length)}</strong></button>
-      <div className={styles.rowMain}><div className={styles.tags}><span className={styles.status}>{t(`states.${idea.status}`)}</span><span>{t(`modules.${idea.module}`)}</span>{idea.mark !== "none" && <span className={styles.tag}>{t(`marks.${idea.mark}`)}</span>}</div><button className={styles.ideaTitle} type="button" onClick={() => openIdea(idea.id)}>{title(idea)}</button><p className={styles.excerpt}>{description(idea)}</p><div className={styles.meta}><span>{t(`authors.${idea.author}`)}</span><time dateTime={idea.createdAt}>{format.dateTime(new Date(idea.createdAt), { month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</time><span>{t("commentCount", { count })}</span>{ideaGroup(data, idea.id).length > 1 && <span>{t("mergedBadge")}</span>}</div></div>
-    </article>;
-  }
-  return <Container className={`${styles.page} ${embedded ? styles.embedded : "community-page"}`} id={embedded ? undefined : "main-content"} tabIndex={-1} aria-label={embedded ? t("embeddedHeading") : undefined}>
-    <div className={styles.notice}>{t(embedded ? "embeddedDemoNotice" : "demoNotice")}</div>
-    <div className={embedded ? styles.embeddedShell : `community-shell ${styles.shell}`}>
-      {!embedded && <nav className="community-breadcrumb" aria-label={t("breadcrumb")}><Link href="/">{t("home")}</Link><span aria-hidden>/</span><span>{t("heading")}</span></nav>}
-      <header className={styles.heading}><div>{embedded ? <h2>{t("embeddedHeading")}</h2> : <><p className={styles.eyebrow}>{t("eyebrow")}</p><h1>{t("heading")}</h1></>}<p>{t("subtitle")}</p></div><label className={styles.adminToggle}><input type="checkbox" checked={admin} onChange={(event) => { setAdmin(event.target.checked); setEditing(false); setCommentEdit(null); setMergePreview(false); }} />{t("adminMode")}</label></header>
-      {!embedded && <nav className={styles.subnav} aria-label={t("sectionsLabel")}><span aria-current="page">{t("feedback")}</span><Link href="/community/feedback/ai-explainer">{t("builds")}</Link><Link href="/community/feedback/reading-release-notes">{t("changelog")}</Link></nav>}
-      {admin && <p className={styles.adminNotice}>{t("adminNotice")}</p>}
-      <div className={styles.layout}>
-        <aside className={styles.sidebar}>
-          <section className={styles.panel}><h2>{t("createHeading")}</h2><p className={styles.muted}>{t("createIntro")}</p><form className={styles.form} onSubmit={submitIdea}>
-            <label>{t("moduleLabel")}<select value={draft.module} onChange={(event) => setDraft({ ...draft, module: event.target.value as IdeaModule })}>{IDEA_MODULES.map((item) => <option key={item} value={item}>{t(`modules.${item}`)}</option>)}</select></label>
-            <label>{t("titleLabel")}<input ref={titleInput} required maxLength={120} value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder={t("titlePlaceholder")} /></label>
-            {draft.title.trim() && <section className={styles.similar} aria-label={t("similarHeading")}><h3>{t("similarHeading")}</h3><p>{t("keywordOnly")}</p>{similar.length ? similar.map((idea) => <button type="button" key={idea.id} onClick={() => openIdea(idea.id)}>{title(idea)} <span aria-hidden>↗</span></button>) : <p>{t("noSimilar")}</p>}</section>}
-            <label>{t("descriptionLabel")}<textarea required rows={5} maxLength={5000} value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder={t("descriptionPlaceholder")} /></label>
-            <p className={styles.muted}>{t("safety")}</p><button type="submit" className={styles.primary} disabled={!draft.title.trim() || !draft.description.trim()}>{t("submit")}</button>
-          </form></section>
-          <section className={`${styles.panel} ${styles.context}`}><h2>{t("howTitle")}</h2><p>{t("howBody")}</p><p>{t("prototypeLimit")}</p><a href="https://www.youtube.com/watch?v=3pSd2A9Cg5k" target="_blank" rel="noreferrer">{t("reference")} ↗</a></section>
-        </aside>
-        <section className={styles.main} aria-label={t("feedback")}>
-          <div className={styles.toolbar}><div className={styles.actions}><button type="button" aria-pressed={!active && view === "list"} onClick={() => { setSelected(null); setView("list"); }}>{t("listView")}</button><button type="button" aria-pressed={!active && view === "progress"} onClick={() => { setSelected(null); setView("progress"); }}>{t("progressView")}</button></div><button type="button" onClick={() => { titleInput.current?.focus(); titleInput.current?.scrollIntoView({ block: "center", behavior: "smooth" }); }}>{t("submit")}</button></div>
-          {active ? <article className={styles.panel}>
-            <button type="button" className={styles.back} onClick={() => { setSelected(null); setEditing(false); }}>{t("back")}</button>
-            <div className={styles.tags}><span className={styles.status}>{t(`states.${active.status}`)}</span><span>{t(`modules.${active.module}`)}</span>{active.mark !== "none" && <span className={styles.tag}>{t(`marks.${active.mark}`)}</span>}</div>
-            <h2 ref={detailHeading} tabIndex={-1} className={styles.detailTitle}>{title(active)}</h2><div className={styles.meta}><span>{t(`authors.${active.author}`)}</span><span>{t("exampleUser")}</span><time dateTime={active.createdAt}>{format.dateTime(new Date(active.createdAt), { year: "numeric", month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</time></div>
-            <p className={styles.description}>{description(active)}</p>
-            <div className={styles.actions}><button type="button" className={styles.support} aria-pressed={ideaVoters(data, active.id).includes(VIEWER)} onClick={() => vote(active)}>△ {t(ideaVoters(data, active.id).includes(VIEWER) ? "supported" : "support")} · {format.number(ideaVoters(data, active.id).length)}</button>{admin && <button type="button" onClick={() => setEditing((value) => !value)}>{t("editIdea")}</button>}</div>
-            {admin && editing && <IdeaEditor key={active.id} idea={active} title={title(active)} description={description(active)} onCancel={() => setEditing(false)} onSave={(change) => { setData((current) => ({ ...current, ideas: current.ideas.map((idea) => idea.id === active.id ? { ...idea, ...change, revisions: [...idea.revisions, { title: title(idea), description: description(idea), module: idea.module, status: idea.status, mark: idea.mark }] } : idea) })); setEditing(false); setNotice(t("saved")); }} />}
-            {active.revisions.length > 0 && <details className={styles.history}><summary>{t("edited", { count: active.revisions.length })} · {t("history")}</summary>{active.revisions.map((previous, index) => <div key={index}><strong>{t("revision", { index: index + 1 })} · {previous.title}</strong><p className={styles.body}>{previous.description}</p><p>{t(`modules.${previous.module}`)} · {t(`states.${previous.status}`)} · {t(`marks.${previous.mark}`)}</p></div>)}</details>}
-            {currentMerge && <section className={styles.mergeBox}><h3>{t("mergeSources")}</h3><p>{t("mergedExplanation")}</p>{data.ideas.filter((idea) => idea.id === currentMerge.source).map((idea) => <details key={idea.id}><summary>{title(idea)}</summary><p className={styles.meta}>{t(`authors.${idea.author}`)} · {format.dateTime(new Date(idea.createdAt), { year: "numeric", month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</p><p className={styles.body}>{description(idea)}</p></details>)}{admin && <button type="button" onClick={() => { setData((current) => undoMerge(current, active.id)); setReplyTo(null); setCommentBody(""); setCommentEdit(null); setEditing(false); setNotice(t("unmerged")); }}>{t("undoMerge")}</button>}</section>}
-            {admin && !currentMerge && <section className={styles.mergeBox}><h3>{t("mergeHeading")}</h3><p>{t("mergeLimit")}</p><label>{t("mergeSelect")}<select value={mergeCandidate ? mergeId : ""} onChange={(event) => { setMergeId(event.target.value); setMergePreview(false); }}><option value="">{t("chooseIdea")}</option>{mergeChoices.map((idea) => <option key={idea.id} value={idea.id}>{title(idea)}</option>)}</select></label><button type="button" disabled={!mergeCandidate} onClick={() => setMergePreview(true)}>{t("previewMerge")}</button>
-              {mergePreview && mergeCandidate && mergeTarget && <div className={styles.mergePreview}><h4>{t("mergePreviewTitle")}</h4><p>{t("mergeTarget", { title: title(mergeTarget) })}</p><p>{t("mergeCounts", { before: ideaVoters(data, active.id).length + ideaVoters(data, mergeCandidate.id).length, after: new Set([...ideaVoters(data, active.id), ...ideaVoters(data, mergeCandidate.id)]).size })}</p><p>{t("mergeUndoNote")}</p><div className={styles.actions}><button className={styles.primary} type="button" onClick={() => { setData((current) => mergePair(current, active.id, mergeCandidate.id)); setSelected(mergeTarget.id); setMergeId(""); setMergePreview(false); setReplyTo(null); setCommentBody(""); setCommentEdit(null); setEditing(false); setNotice(t("merged")); }}>{t("confirmMerge")}</button><button type="button" onClick={() => setMergePreview(false)}>{t("cancel")}</button></div></div>}
-            </section>}
-            <section className={styles.discussion}><h3>{t("discussion", { count: comments.length })}</h3><form className={styles.form} onSubmit={submitComment}>{replyTo && <div className={styles.replyTarget}><p>{t("replyingTo", { name: t(`authors.${data.comments.find((comment) => comment.id === replyTo)?.author ?? VIEWER}`) })}</p><button type="button" onClick={() => setReplyTo(null)}>{t("cancelReply")}</button></div>}<label>{t("commentLabel")}<textarea ref={commentInput} required maxLength={2000} rows={3} value={commentBody} onChange={(event) => setCommentBody(event.target.value)} placeholder={t("commentPlaceholder")} /></label><button type="submit" className={styles.primary} disabled={!commentBody.trim()}>{t(replyTo ? "sendReply" : "sendComment")}</button></form><ul className={styles.comments}>{comments.filter((comment) => !comment.parent).map((comment) => renderComment(comment))}</ul>{!comments.length && <p className={styles.muted}>{t("noComments")}</p>}</section>
-          </article> : <>
-            <div className={styles.filters}><label className={styles.search}>{t("search")}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("searchPlaceholder")} /></label><label>{t("moduleLabel")}<select value={module} onChange={(event) => setModule(event.target.value)}><option value="all">{t("allModules")}</option>{IDEA_MODULES.map((item) => <option key={item} value={item}>{t(`modules.${item}`)}</option>)}</select></label><label>{t("statusLabel")}<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">{t("allStates")}</option>{IDEA_STATES.map((item) => <option key={item} value={item}>{t(`states.${item}`)}</option>)}</select></label><label>{t("sortLabel")}<select value={sort} onChange={(event) => setSort(event.target.value)}>{["popular", "latest", "oldest"].map((item) => <option key={item} value={item}>{t(`sorts.${item}`)}</option>)}</select></label></div>
-            <p className={styles.resultCount} role="status">{t("resultCount", { count: visible.length })}</p>
-            {!visible.length && <section className={styles.panel}><h2>{t("empty")}</h2><p>{t("emptyHint")}</p><button type="button" onClick={() => { setQuery(""); setModule("all"); setStatus("all"); }}>{t("clearFilters")}</button></section>}
-            {view === "list" ? <div className={styles.list}>{visible.map(renderRow)}</div> : <><p className={styles.muted}>{t("progressNotice")}</p><div className={styles.board}>{IDEA_STATES.filter((state) => status === "all" || status === state).map((state) => <section key={state} className={styles.column}><h2>{t(`states.${state}`)} <span>{visible.filter((idea) => idea.status === state).length}</span></h2>{visible.filter((idea) => idea.status === state).map(renderRow)}{!visible.some((idea) => idea.status === state) && <p className={styles.muted}>{t("emptyColumn")}</p>}</section>)}</div></>}
-          </>}
+  return <section className={`${styles.page} ${styles.embedded}`} aria-label={t("heading")} aria-busy={loading || busy}>
+    <header className={styles.heading}><div><h2>{t("heading")}</h2><p>{t("intro")}</p></div><button type="button" className={styles.primary} onClick={compose}>{t("publish")}</button></header>
+    {admin && <p className={styles.adminNotice}>{t("adminNotice")}</p>}
+    {error && <div className={styles.error} role="alert"><p>{error}</p>{errorCode === "sign_in" && <Link href={signInHref} onClick={() => { if (!active || !commentBody) return; try { saveFeedbackDraft(`comment:${active.id}`, owner, { body: commentBody, parent: replyTo, request: commentRequest.current }); } catch { setError(t("draftUnavailable")); } }}>{t("signInContinue")}</Link>}<button type="button" onClick={() => setReload((value) => value + 1)}>{t("retry")}</button></div>}
+    {notice && <p className={styles.success} role="status">{notice}</p>}
+    {loading && <p className={styles.muted} role="status">{t("loading")}</p>}
+    {data && <>
+      <div className={styles.toolbar}><div className={styles.actions}><button type="button" aria-pressed={!active && view === "list"} onClick={() => { openIdea(null); setView("list"); }}>{c("listView")}</button><button type="button" aria-pressed={!active && view === "progress"} onClick={() => { openIdea(null); setView("progress"); }}>{c("progressView")}</button></div><button type="button" onClick={() => setReload((value) => value + 1)}>{t("refresh")}</button></div>
+      {active ? <article className={styles.panel}>
+        <button type="button" disabled={busy} className={styles.back} onClick={() => openIdea(null)}>{c("back")}</button><div className={styles.tags}><span className={styles.status}>{c(`states.${active.status}`)}</span><span>{c(`modules.${active.module}`)}</span>{active.mark !== "none" && <span className={styles.tag}>{c(`marks.${active.mark}`)}</span>}{active.visibility === "hidden" && <span>{t("hidden")}</span>}</div><h2 className={styles.detailTitle}>{active.title}</h2><div className={styles.meta}><span>{author(active.author_name)}</span><time dateTime={active.created_at}>{format.dateTime(new Date(active.created_at), { year: "numeric", month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</time>{active.version > 1 && <span>{t("revision", { version: active.version })}</span>}</div><p className={styles.description}>{active.description}</p>
+        <div className={styles.actions}><button type="button" disabled={busy} className={styles.support} aria-pressed={active.supported} onClick={() => void mutate("vote", { id: active.id, supported: !active.supported })}>△ {c(active.supported ? "supported" : "support")} · {format.number(active.support_count)}</button>{admin && <button type="button" disabled={busy} onClick={() => setEditing(!editing)}>{c("editIdea")}</button>}</div>
+        {admin && editing && <IdeaEditor key={active.id} idea={active} busy={busy} onCancel={() => setEditing(false)} onSave={async (change, version) => { if (await mutate("edit", { id: active.id, version, ...change })) setEditing(false); }} />}
+        {data.sources.length > 0 && <section className={styles.mergeBox}><h3>{c("mergeSources")}</h3><p>{t("mergedExplanation")}</p>{data.sources.map((source) => <details key={source.id}><summary>{source.title}</summary><p className={styles.meta}>{author(source.author_name)} · {format.dateTime(new Date(source.created_at), { year: "numeric", month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</p><p className={styles.body}>{source.description}</p></details>)}{admin && active.merge_id && <button type="button" disabled={busy} onClick={async () => { if (await mutate("unmerge", { id: active.merge_id, version: active.version })) clearEditor(); }}>{c("undoMerge")}</button>}</section>}
+        {admin && !active.merge_id && active.visibility === "published" && <section className={styles.mergeBox}><h3>{c("mergeHeading")}</h3><p>{t("mergeLimit")}</p><label>{t("findMerge")}<input maxLength={120} value={mergeQuery} onChange={(event) => { setMergeQuery(event.target.value); setMergeChoice(null); setMergePreview(null); }} /></label><label>{c("mergeSelect")}<select value={mergeChoice?.id ?? ""} disabled={busy} onChange={(event) => { setMergeChoice(mergeChoices.find((post) => post.id === event.target.value) ?? null); setMergePreview(null); }}><option value="">{c("chooseIdea")}</option>{mergeChoices.map((post) => <option key={post.id} value={post.id}>{post.title}</option>)}</select></label><button type="button" disabled={busy || !mergeChoice} onClick={() => void previewMerge()}>{c("previewMerge")}</button>{mergePreview && mergeChoice && <div className={styles.mergePreview}><h4>{c("mergePreviewTitle")}</h4><p>{c("mergeTarget", { title: mergePreview.id === active.id ? active.title : mergeChoice.title })}</p><p>{c("mergeCounts", { before: active.support_count + mergeChoice.support_count, after: mergePreview.support_count })}</p><p>{c("mergeUndoNote")}</p><div className={styles.actions}><button type="button" className={styles.primary} disabled={busy} onClick={async () => { if (await mutate("merge", { id: active.id, version: active.version, other_id: mergeChoice.id, other_version: mergeChoice.version })) clearEditor(); }}>{c("confirmMerge")}</button><button type="button" disabled={busy} onClick={() => setMergePreview(null)}>{c("cancel")}</button></div></div>}</section>}
+        {admin && data.history.length > 0 && <details className={styles.history}><summary>{t("history")}</summary><p>{t("historyLimit")}</p>{data.history.map((entry) => <div key={entry.id}><strong>{t(`audit.${entry.action}`)}</strong> · <time dateTime={entry.created_at}>{format.dateTime(new Date(entry.created_at), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Shanghai" })}</time>{entry.before_data && <p className={styles.body}>{t("previous")} {String(entry.before_data.title ?? entry.before_data.body ?? "")} {typeof entry.before_data.status === "string" && c(`states.${entry.before_data.status}`)} {typeof entry.before_data.mark === "string" && c(`marks.${entry.before_data.mark}`)}{typeof entry.before_data.description === "string" && `\n${entry.before_data.description}`}</p>}</div>)}</details>}
+        <section className={styles.discussion}><h3>{c("discussion", { count: data.comment_total })}</h3><form className={styles.form} onSubmit={submitComment}>{replyTo && <div className={styles.replyTarget}><p>{c("replyingTo", { name: author(replyTo.author_name) })}</p><button type="button" disabled={busy} onClick={() => { setReplyTo(null); commentRequest.current = null; }}>{c("cancelReply")}</button></div>}<label>{c("commentLabel")}<textarea ref={commentInput} required minLength={2} disabled={busy} maxLength={2000} rows={3} value={commentBody} onChange={(event) => setCommentBody(event.target.value)} placeholder={c("commentPlaceholder")} /></label><div className={styles.actions}><button type="submit" className={styles.primary} disabled={busy || commentBody.trim().length < 2}>{busy ? t("saving") : c(replyTo ? "sendReply" : "sendComment")}</button><button type="button" disabled={busy} onClick={() => { try { const stored = takeFeedbackDraft<{ body: string; parent: FeedbackComment | null; request: string | null }>(`comment:${active.id}`, owner, Boolean(owner && new URLSearchParams(window.location.search).get("resumeComment") === "1")); if (stored?.body) { setCommentBody(stored.body); setReplyTo(stored.parent ?? null); commentRequest.current = stored.request ?? null; } else setNotice(t("noDraft")); } catch { setError(t("draftUnavailable")); } }}>{t("restoreDraft")}</button></div></form>
+          <ul className={styles.comments}>{data.comments.map((comment) => <li key={comment.id} className={`${styles.comment} ${comment.parent_id ? styles.reply : ""}`}><div className={styles.meta}><strong>{author(comment.author_name)}</strong><time dateTime={comment.created_at}>{format.dateTime(new Date(comment.created_at), { month: "short", day: "numeric", timeZone: "Asia/Shanghai" })}</time>{comment.version > 1 && <span>{t("revision", { version: comment.version })}</span>}{comment.mark !== "none" && <span className={styles.tag}>{c(`marks.${comment.mark}`)}</span>}{comment.visibility === "hidden" && <span>{t("hidden")}</span>}</div>{comment.parent_id && <p className={styles.origin}>{c("replyingTo", { name: author(comment.parent_author_name) })}</p>}{data.sources.length > 0 && <p className={styles.origin}>{c("origin", { title: comment.source_title })}</p>}<p className={styles.body}>{comment.body}</p><div className={styles.actions}><button type="button" disabled={busy} aria-pressed={comment.supported} aria-label={c("commentVote", { count: comment.support_count })} onClick={() => void mutate("comment_vote", { id: comment.id, supported: !comment.supported })}>△ {format.number(comment.support_count)}</button><button type="button" disabled={busy || comment.visibility !== "published"} onClick={() => { setReplyTo(comment); commentRequest.current = null; commentInput.current?.focus(); }}>{c("reply")}</button>{admin && <button type="button" disabled={busy} onClick={() => setCommentEdit({ comment, body: comment.body, mark: comment.mark, visibility: comment.visibility })}>{c("editComment")}</button>}</div>
+            {admin && commentEdit?.comment.id === comment.id && <form className={styles.editor} onSubmit={async (event) => { event.preventDefault(); if (await mutate("edit_comment", { id: comment.id, version: commentEdit.comment.version, body: commentEdit.body, mark: commentEdit.mark, visibility: commentEdit.visibility })) setCommentEdit(null); }}><label>{c("commentLabel")}<textarea required minLength={2} disabled={busy} maxLength={2000} value={commentEdit.body} onChange={(event) => setCommentEdit({ ...commentEdit, body: event.target.value })} /></label><label>{c("markLabel")}<select disabled={busy} value={commentEdit.mark} onChange={(event) => setCommentEdit({ ...commentEdit, mark: event.target.value as FeedbackMark })}>{FEEDBACK_MARKS.map((mark) => <option key={mark} value={mark}>{c(`marks.${mark}`)}</option>)}</select></label><label>{t("visibility")}<select disabled={busy} value={commentEdit.visibility} onChange={(event) => setCommentEdit({ ...commentEdit, visibility: event.target.value as "published" | "hidden" })}><option value="published">{t("public")}</option><option value="hidden">{t("hidden")}</option></select></label><div className={styles.actions}><button type="submit" className={styles.primary} disabled={busy || commentEdit.body.trim().length < 2}>{c("save")}</button><button type="button" disabled={busy} onClick={() => setCommentEdit(null)}>{c("cancel")}</button></div></form>}
+          </li>)}</ul>{data.comment_total === 0 && <p className={styles.muted}>{c("noComments")}</p>}<div className={styles.pagination}><button type="button" disabled={loading || commentOffset === 0} onClick={() => setCommentOffset(Math.max(0, commentOffset - 50))}>{t("previousPage")}</button><span>{t("commentPage", { count: data.comment_total, start: data.comment_total ? commentOffset + 1 : 0, end: Math.min(commentOffset + 50, data.comment_total) })}</span><button type="button" disabled={loading || commentOffset + 50 >= data.comment_total} onClick={() => setCommentOffset(commentOffset + 50)}>{t("nextPage")}</button></div>
         </section>
-      </div><p className={styles.live} role="status" aria-live="polite">{notice}</p>
-    </div>
-  </Container>;
+      </article> : <>
+        <div className={styles.filters}><label className={styles.search}>{c("search")}<input type="search" maxLength={120} value={query} onChange={(event) => { setQuery(event.target.value); setOffset(0); }} placeholder={c("searchPlaceholder")} /></label><label>{c("moduleLabel")}<select value={module} onChange={(event) => { setModule(event.target.value); setOffset(0); }}><option value="all">{c("allModules")}</option>{FEEDBACK_MODULES.map((value) => <option key={value} value={value}>{c(`modules.${value}`)}</option>)}</select></label><label>{c("statusLabel")}<select value={status} onChange={(event) => { setStatus(event.target.value); setOffset(0); }}><option value="all">{c("allStates")}</option>{FEEDBACK_STATES.map((value) => <option key={value} value={value}>{c(`states.${value}`)}</option>)}</select></label><label>{c("sortLabel")}<select value={sort} onChange={(event) => { setSort(event.target.value); setOffset(0); }}>{["latest", "popular", "oldest"].map((value) => <option key={value} value={value}>{c(`sorts.${value}`)}</option>)}</select></label></div><p className={styles.resultCount} role="status">{t("resultCount", { count: data.total })}</p>
+        {data.posts.length === 0 ? <section className={styles.panel}><h2>{c("empty")}</h2><p>{t("emptyHint")}</p><div className={styles.actions}><button type="button" onClick={resetFilters}>{c("clearFilters")}</button><button type="button" className={styles.primary} onClick={compose}>{t("publish")}</button></div></section> : view === "list" ? <div className={styles.list}>{data.posts.map(renderRow)}</div> : <><p className={styles.muted}>{t("progressNotice")}</p><div className={styles.board}>{FEEDBACK_STATES.filter((value) => status === "all" || status === value).map((value) => <section key={value} className={styles.column}><h2>{c(`states.${value}`)}</h2>{data.posts.filter((post) => post.status === value).map(renderRow)}{!data.posts.some((post) => post.status === value) && <p className={styles.muted}>{t("emptyColumn")}</p>}</section>)}</div></>}
+        <div className={styles.pagination}><button type="button" disabled={loading || offset === 0} onClick={() => setOffset(Math.max(0, offset - 20))}>{t("previousPage")}</button><span>{t("pageCount", { page: Math.floor(offset / 20) + 1, pages: Math.max(1, Math.ceil(data.total / 20)) })}</span><button type="button" disabled={loading || offset + 20 >= data.total} onClick={() => setOffset(offset + 20)}>{t("nextPage")}</button></div>
+      </>}
+    </>}
+  </section>;
 }

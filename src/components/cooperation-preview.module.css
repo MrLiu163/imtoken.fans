@@ -99,3 +99,9 @@
 .embedded .heading { margin: 20px 0; gap: 18px; }
 .embedded .heading h2 { font-size: 21px; font-weight: 700; margin: 0 0 7px; }
 .embedded .heading p { font-size: 13px; }
+.error { border: 1px solid #edb0bb; background: #fff4f5; color: #96283b; padding: 14px 17px; border-radius: 8px; margin: 14px 0; font-size: 13px; line-height: 1.8; }
+.error button, .error a { color: #9b2350; text-decoration: underline; margin: 8px 14px 0 0; }
+.success { padding: 10px 15px; color: #24684e; background: #eaf7ef; border-radius: 8px; margin: 12px 0; font-size: 13px; }
+.pagination { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; align-items: center; margin: 20px 0; font-size: 12px; color: #69778b; }
+.pagination button { border: 1px solid #dae2ed; border-radius: 6px; padding: 8px 12px; background: white; }
+.reply { margin-left: 16px; border-left: 2px solid #e8edf5; padding-left: 18px; }

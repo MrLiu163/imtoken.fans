@@ -1,5 +1,7 @@
 # 产品共创 IDEA 原型 Review
 
+这是历史原型验收记录。当前代码已改为真实Supabase接入，新增0025迁移及运行条件见 [真实接入任务](../tasks/product-feedback-persistence.md)；旧原型截图与测试不代表当前目标库已完成验收。
+
 日期：2026-10-16。状态：交互原型已交付，等待用户 review。
 
 预览入口：http://localhost:3000/zh/community/feedback

@@ -1,5 +1,7 @@
 # Jack · Product Cooperation Feedback 主线整合
 
+本记录保留上一批原型融合结果。后续用户要求直接实现真实业务，当前进度见 [真实发布与持久化](product-feedback-persistence.md)，不再提供原型种子和模拟Admin。
+
 日期：2026-10-16。状态：本地分支整合与验证完成，待用户 review。
 
 ## 请求与基线
