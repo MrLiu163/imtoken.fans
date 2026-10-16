@@ -10,6 +10,7 @@ import { deriveUser, type SessionUser } from "@/lib/derive-user";
 export type { AuthMethod, SessionUser } from "@/lib/derive-user";
 
 export interface AuthUser extends SessionUser {
+  id: string;
   avatarUrl: string | null;
   bio: string | null;
 }
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(() => isSupabaseConfigured());
   const rawUserRef = useRef<User | null>(null);
+  const sessionVersionRef = useRef(0);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
 
     async function syncSession(rawUser: User | null) {
+      const version = ++sessionVersionRef.current;
       rawUserRef.current = rawUser;
       const base = deriveUser(rawUser);
       if (!rawUser || !base) {
@@ -58,10 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role, username, display_name, avatar_url, bio")
         .eq("id", rawUser.id)
         .maybeSingle();
-      if (cancelled) return;
+      if (cancelled || version !== sessionVersionRef.current) return;
       setIsAdmin(profile?.role === "admin");
       setUser({
         ...base,
+        id: rawUser.id,
         name: profile?.display_name || profile?.username || base.name,
         avatarUrl: profile?.avatar_url ?? null,
         bio: profile?.bio ?? null,
@@ -71,7 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function loadInitialSession() {
       for (let attempt = 0; attempt <= INITIAL_LOAD_RETRY_DELAYS_MS.length; attempt++) {
         try {
+          const version = sessionVersionRef.current;
           const { data, error } = await supabase.auth.getUser();
+          if (version !== sessionVersionRef.current) return;
           if (error) throw error;
           await syncSession(data.user);
           return;
@@ -105,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured() || !rawUserRef.current) return;
     const supabase = createClient();
     const rawUser = rawUserRef.current;
+    const version = sessionVersionRef.current;
     const base = deriveUser(rawUser);
     if (!base) return;
     const { data: profile } = await supabase
@@ -112,9 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("role, username, display_name, avatar_url, bio")
       .eq("id", rawUser.id)
       .maybeSingle();
+    if (version !== sessionVersionRef.current || rawUserRef.current?.id !== rawUser.id) return;
     setIsAdmin(profile?.role === "admin");
     setUser({
       ...base,
+      id: rawUser.id,
       name: profile?.display_name || profile?.username || base.name,
       avatarUrl: profile?.avatar_url ?? null,
       bio: profile?.bio ?? null,
@@ -122,6 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    sessionVersionRef.current++;
+    rawUserRef.current = null;
+    setUser(null);
+    setIsAdmin(false);
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       await supabase.auth.signOut();

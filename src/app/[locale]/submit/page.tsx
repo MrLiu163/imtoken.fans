@@ -70,9 +70,16 @@ const DESCRIPTION_MIN = 10;
 const DRAFT_STORAGE_KEY = "imtoken-fans-submission-drafts-v2";
 
 export default function SubmitPage() {
+  const { user } = useAuth();
+  // 切换账户时重建表单，避免前一账户的内存草稿被新账户保存。
+  return <SubmitPageForUser key={user?.id ?? "anonymous"} />;
+}
+
+function SubmitPageForUser() {
   const t = useTranslations("submit");
   const tc = useTranslations("common");
   const { user } = useAuth();
+  const draftStorageKey = user ? `${DRAFT_STORAGE_KEY}:${user.id}` : null;
 
   const [drafts, setDrafts] = useState<Record<SubmitType, Draft>>({ product: emptyDraft(), idea: emptyDraft() });
   const [type, setType] = useState<SubmitType>("product");
@@ -85,21 +92,21 @@ export default function SubmitPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const saved = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+        const saved = draftStorageKey ? window.localStorage.getItem(draftStorageKey) : null;
         if (saved) setDrafts(JSON.parse(saved) as Record<SubmitType, Draft>);
       } catch {
-        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+        if (draftStorageKey) window.localStorage.removeItem(draftStorageKey);
       } finally {
         setDraftReady(true);
       }
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [draftStorageKey]);
 
   useEffect(() => {
-    if (!draftReady) return;
-    window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-  }, [draftReady, drafts]);
+    if (!draftReady || !draftStorageKey) return;
+    window.localStorage.setItem(draftStorageKey, JSON.stringify(drafts));
+  }, [draftReady, drafts, draftStorageKey]);
 
   const draft = drafts[type];
 
