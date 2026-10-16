@@ -30,7 +30,7 @@ export function SiteHeader() {
         <Link href="/" className="fans-brand"><BrandLogo /></Link>
         <nav className="fans-desktop-nav" aria-label={t("mainNavigation")}>
           <Link href="/" aria-current={pathname === "/" ? "page" : undefined}>{t("home")}</Link>
-          {sections.map((section) => <Link href={`/community/${section}`} key={section} aria-current={pathname.startsWith(`/community/${section}`) ? "page" : undefined}>{t(section)}</Link>)}
+          {sections.map((section) => <Link href={`/community/${section}`} key={section} aria-current={pathname.startsWith(`/community/${section}`) || (section === "feedback" && pathname.startsWith("/products/")) ? "page" : undefined}>{t(section)}</Link>)}
         </nav>
         <div className="fans-header-tools">
           <LanguageSwitcher />

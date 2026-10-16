@@ -9,6 +9,7 @@ function readViewer(request) {
 }
 
 let omitServerProfiles = false;
+let failProductList = false;
 const server = createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:3000");
   response.setHeader("Access-Control-Allow-Headers", "*");
@@ -20,6 +21,10 @@ const server = createServer(async (request, response) => {
   if (url.pathname === "/health") return send({ ok: true });
   if (url.pathname === "/test/profile-availability") {
     omitServerProfiles = url.searchParams.get("missing") === "true";
+    return send({ ok: true });
+  }
+  if (url.pathname === "/test/product-list-availability") {
+    failProductList = url.searchParams.get("fail") === "true";
     return send({ ok: true });
   }
   const viewer = readViewer(request);
@@ -37,6 +42,7 @@ const server = createServer(async (request, response) => {
     return send(profileFor(id));
   }
   if (url.pathname === "/rest/v1/submission_cards") {
+    if (failProductList && !url.searchParams.has("id")) return send({ message: "Local test product list unavailable" }, 503);
     if (url.searchParams.get("id")?.startsWith("neq.")) return send([]);
     return send(url.searchParams.get("id")?.startsWith("eq.") ? product : [product]);
   }
