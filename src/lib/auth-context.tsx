@@ -10,6 +10,7 @@ import { deriveUser, type SessionUser } from "@/lib/derive-user";
 export type { AuthMethod, SessionUser } from "@/lib/derive-user";
 
 export interface AuthUser extends SessionUser {
+  id: string;
   avatarUrl: string | null;
   bio: string | null;
 }
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(() => isSupabaseConfigured());
   const rawUserRef = useRef<User | null>(null);
+  const sessionVersionRef = useRef(0);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -43,36 +45,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
 
     async function syncSession(rawUser: User | null) {
+      const version = ++sessionVersionRef.current;
       rawUserRef.current = rawUser;
       const base = deriveUser(rawUser);
       if (!rawUser || !base) {
         if (!cancelled) {
           setUser(null);
           setIsAdmin(false);
+          setLoading(false);
         }
         return;
       }
+      if (!cancelled) setLoading(true);
       // profiles 是公开可读的（RLS: select using (true)），客户端直接查就行。
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, username, display_name, avatar_url, bio")
-        .eq("id", rawUser.id)
-        .maybeSingle();
-      if (cancelled) return;
+      const { data: profile } = await Promise.resolve(
+        supabase
+          .from("profiles")
+          .select("role, username, display_name, avatar_url, bio")
+          .eq("id", rawUser.id)
+          .maybeSingle()
+      ).catch(() => ({ data: null }));
+      // 较早的账号请求不能覆盖退出/切换账号后已开始的会话。
+      if (cancelled || version !== sessionVersionRef.current) return;
       setIsAdmin(profile?.role === "admin");
       setUser({
         ...base,
+        id: rawUser.id,
         name: profile?.display_name || profile?.username || base.name,
         avatarUrl: profile?.avatar_url ?? null,
         bio: profile?.bio ?? null,
       });
+      setLoading(false);
     }
 
     async function loadInitialSession() {
+      const initialVersion = sessionVersionRef.current;
       for (let attempt = 0; attempt <= INITIAL_LOAD_RETRY_DELAYS_MS.length; attempt++) {
         try {
           const { data, error } = await supabase.auth.getUser();
           if (error) throw error;
+          if (cancelled || initialVersion !== sessionVersionRef.current) return;
           await syncSession(data.user);
           return;
         } catch {
@@ -84,14 +96,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     loadInitialSession().finally(() => {
-      if (!cancelled) setLoading(false);
+      if (!cancelled && sessionVersionRef.current === 0) setLoading(false);
     });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       syncSession(session?.user ?? null)
-        .catch(() => {})
-        .finally(() => {
-          if (!cancelled) setLoading(false);
+        .catch(() => {
+          // 仅当前账号的失败可以结束加载；晚到的旧请求不能清掉新会话。
+          if (!cancelled && rawUserRef.current?.id === session?.user?.id) {
+            setUser(null);
+            setIsAdmin(false);
+            setLoading(false);
+          }
         });
     });
 
@@ -105,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured() || !rawUserRef.current) return;
     const supabase = createClient();
     const rawUser = rawUserRef.current;
+    const version = sessionVersionRef.current;
     const base = deriveUser(rawUser);
     if (!base) return;
     const { data: profile } = await supabase
@@ -112,9 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("role, username, display_name, avatar_url, bio")
       .eq("id", rawUser.id)
       .maybeSingle();
+    if (version !== sessionVersionRef.current || rawUser.id !== rawUserRef.current?.id) return;
     setIsAdmin(profile?.role === "admin");
     setUser({
       ...base,
+      id: rawUser.id,
       name: profile?.display_name || profile?.username || base.name,
       avatarUrl: profile?.avatar_url ?? null,
       bio: profile?.bio ?? null,

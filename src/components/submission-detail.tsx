@@ -207,14 +207,13 @@ export async function SubmissionDetail({
           {submission.type === "product" && productEngagement && (
             <ProductEngagementSection
               submissionId={submission.id}
-              isLoggedIn={isLoggedIn}
-              isOwner={isOwner}
+              submittedBy={submission.submitted_by}
+              initialViewerId={productEngagement.viewerId}
               initialSupportCount={submission.support_count}
               initialSupported={productEngagement.viewerSupported}
               ratingAverage={submission.rating_average}
               ratingCount={submission.rating_count}
               reviews={productEngagement.reviews}
-              viewerRating={productEngagement.viewerRating}
             />
           )}
 

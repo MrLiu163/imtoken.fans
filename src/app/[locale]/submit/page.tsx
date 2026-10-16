@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Suspense, useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { AuthLoading } from "@/components/auth-loading";
+import { getSignInHref } from "@/lib/auth-navigation";
 import { createSubmission } from "@/app/actions/submissions";
 import { deleteSubmissionMedia, uploadSubmissionMedia } from "@/app/actions/media";
 import { getSubmissionMediaUrl, MAX_SCREENSHOTS, MAX_SOCIAL_LINKS, MAX_TEAM_MEMBERS } from "@/lib/media";
@@ -70,17 +73,29 @@ const DESCRIPTION_MIN = 10;
 const DRAFT_STORAGE_KEY = "imtoken-fans-submission-drafts-v2";
 
 export default function SubmitPage() {
+  return <Suspense fallback={<AuthLoading />}><SubmitPageContent /></Suspense>;
+}
+
+function SubmitPageContent() {
   const t = useTranslations("submit");
   const tc = useTranslations("common");
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [drafts, setDrafts] = useState<Record<SubmitType, Draft>>({ product: emptyDraft(), idea: emptyDraft() });
-  const [type, setType] = useState<SubmitType>("product");
+  const type: SubmitType = searchParams.get("type") === "idea" ? "idea" : "product";
+  const signInHref = getSignInHref(`/submit?type=${type}`, locale);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [published, setPublished] = useState(false);
   const [draftReady, setDraftReady] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) router.replace(signInHref);
+  }, [loading, user, router, signInHref]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -107,21 +122,7 @@ export default function SubmitPage() {
     setDrafts((prev) => ({ ...prev, [type]: { ...prev[type], ...patch } }));
   }
 
-  if (!user) {
-    return (
-      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center sm:px-6">
-        <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-2xl">🔒</span>
-        <h1 className="text-2xl font-extrabold text-ink">{t("signInTitle")}</h1>
-        <p className="mt-2 text-sm text-muted">{t("signInBody")}</p>
-        <Link
-          href="/auth/sign-in?redirect=/submit"
-          className="mt-6 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-ink"
-        >
-          {tc("goSignIn")}
-        </Link>
-      </div>
-    );
-  }
+  if (loading || !user) return <AuthLoading />;
 
   if (submitted) {
     return (
@@ -219,14 +220,14 @@ export default function SubmitPage() {
             title={t("productTitle")}
             desc={t("productDesc")}
             active={type === "product"}
-            onClick={() => setType("product")}
+            onClick={() => router.replace("/submit?type=product", { scroll: false })}
           />
           <TypeCard
             icon="💡"
             title={t("ideaTitle")}
             desc={t("ideaDesc")}
             active={type === "idea"}
-            onClick={() => setType("idea")}
+            onClick={() => router.replace("/submit?type=idea", { scroll: false })}
           />
         </div>
 

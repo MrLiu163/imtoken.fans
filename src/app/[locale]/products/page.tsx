@@ -25,7 +25,7 @@ export default async function ProductsPage() {
             <div className="min-w-0 rounded-2xl bg-brand-soft p-5 break-words">
               <h2 className="font-bold text-brand-ink">{t("ctaTitle")}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">{t("ctaBody")}</p>
-              <Link href="/submit" className="mt-4 inline-flex rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-ink">
+              <Link href="/submit?type=product" className="mt-4 inline-flex rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-ink">
                 {t("submitProduct")}
               </Link>
             </div>
