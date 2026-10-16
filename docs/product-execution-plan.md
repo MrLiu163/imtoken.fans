@@ -1,6 +1,6 @@
 # imToken Fans 产品定位与执行计划
 
-版本：v3.1 · 更新：2026-10-16。M1-A2 演示与 M3-C Product Hunter 代码已汇入整合分支；UI 待用户 review，真实业务未验收，所有者已授权合并，外部批准门槛取消，正在执行主线整合。
+版本：v3.1 · 更新：2026-10-16。M1-A2 演示与 M3-C Product Hunter 代码已汇入整合分支；UI 待用户 review，真实业务未验收，所有者授权规则已生效，PR #1–#4 已全部合入 main；正式站部署单独核验。
 
 [详细产品需求](product-requirements.md)定义「做什么、规则和验收」；本文维护「已有基础、技术缺口和实施边界」；[路线图](../roadmap.md)维护任务状态。历史计划在 [归档](archive/imaihunt-product-execution-plan-v1.0.md)，不作为当前需求依据。
 

@@ -1,6 +1,6 @@
 # 分支整合与本地运行
 
-更新：2026-10-16。状态：整合预览已部署；所有者已授权取消外部批准门槛，正在执行 main 合并。下文批准要求为历史记录。
+更新：2026-10-16。状态：整合预览已部署；所有者授权规则已生效，PR #1–#4 全部 MERGED，main 正式部署已成功。下文批准要求为历史记录。
 
 ## 范围
 
@@ -43,3 +43,13 @@ GitHub的PR #1、#2目前均 REVIEW_REQUIRED，无其他维护者批准。整合
 ## 2026-10-16 所有者授权执行
 
 用户明确其他成员为协作者，所有者自己的合并指令即可授权 AI 检查与合并。取消 GitHub 外部批准人数门槛；保留 PR、讨论解决、禁止强推/删除与管理员约束。采用整合 PR 的 merge commit 保留 #1/#2/#4 祖先关系，逐一核对实际 MERGED 状态。发布范围仍为无数据库演示，不执行迁移。
+
+
+## 2026-10-16 实际合并结果
+
+- GitHub 已核实 #1/#2/#3/#4 的 `state=MERGED`、`merged=true`，当前无待合并 PR；不是仅关闭旧 PR。
+- #3 合并提交 `fc9974118c4beb108061c4027fc2564d9572846a`，包含全部整合内容；#4 已先以 `f86f958606ccdc142ae05554bbe1c352e70cef75` 合入。
+- 主线保护回读：required_approving_review_count=0、enforce_admins=true、required_conversation_resolution=true、allow_force_pushes=false、allow_deletions=false。未扩大协作者权限。
+- 正式站地址 https://imtoken-fans.vercel.app/zh；主线提交触发部署。无数据库业务发布验收，M3-C 风险记录继续有效。
+
+- Vercel 已为 main 提交 `fc9974118c4beb108061c4027fc2564d9572846a` 返回 success；正式部署 `7xcYBupuvpXysaZfwaUrJch6kWVo`。后续此纯文档收尾仍需等待自身部署完成，应用代码与该成功版本一致。
