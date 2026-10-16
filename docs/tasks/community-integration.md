@@ -35,3 +35,6 @@ GitHub的PR #1、#2目前均 REVIEW_REQUIRED，无其他维护者批准。整合
 - 集成检查：i18n 1249 键、lint、build/TypeScript 通过。未执行真实登录、评分写入、数据库迁移或生产业务验收。
 - 按风险启用独立 QA，真实业务存在 2 项 P1、4 项 P2；见 [QA 记录](../reviews/M3-C-product-hunter-security.md)。修复/迁移验收另批执行，不能把合并代码标为业务完成。
 - PR #1–#4 均缺少另一位维护者批准，GitHub 状态 REVIEW_REQUIRED/BLOCKED。PR #3 作为含全部提交的整合 PR 保留；不能宣称所有 PR 已合并，不通过关闭旧 PR 冒充合并完成。
+
+- 2026-10-16 10:51（新加坡）：Vercel 已为整合提交 `05db11a7a9f2ad222411a6c08d197b6602496813` 返回 success / Ready；部署 `1FuKFHbdhPSa7TF1daBs6tjJ8a64`。预览入口：https://imtoken-fans-git-codex-community-i-5a38c8-simonliulius-projects.vercel.app/zh （需要 Vercel 登录）。已在登录浏览器看到社区首页与安全板块；不代表真实业务通过。此记录后的纯文档提交不改变应用代码。
+- 同次核对远端 main 仍为 `00f5801d9509b5d1b637988b512434b464e13292`；正式生产入口不能当作本次最新整合预览。
