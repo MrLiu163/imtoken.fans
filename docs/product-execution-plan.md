@@ -1,6 +1,6 @@
 # imToken Fans 产品定位与执行计划
 
-版本：v3.0 · 更新：2026-10-15。产品范围已按本轮需求更新；M1-A2 演示仍等待用户 review，真实业务模型尚未改造。
+版本：v3.1 · 更新：2026-10-16。M1-A2 演示与 M3-C Product Hunter 代码已汇入整合分支；UI 待用户 review，真实业务未验收，主线合并等待维护者批准。
 
 [详细产品需求](product-requirements.md)定义「做什么、规则和验收」；本文维护「已有基础、技术缺口和实施边界」；[路线图](../roadmap.md)维护任务状态。历史计划在 [归档](archive/imaihunt-product-execution-plan-v1.0.md)，不作为当前需求依据。
 
@@ -23,14 +23,14 @@ imToken Fans 服务 imToken 钱包用户，四个一级板块为 **钱包安全�
 
 ## 2. 当前代码盘点（2026-10-15 静态复核）
 
-静态检查表示仓库有实现，不等于已在数据库执行或真实业务通过验收。本轮未连接数据库、未启动/修改页面、未部署。
+静态检查表示仓库有实现，不等于已在数据库执行或真实业务通过验收。此段记录 2026-10-15 静态盘点的历史范围；2026-10-16 集成验证与风险以本文新增状态为准。
 
 | 能力 | 仓库依据与当前状态 | 改造判断 |
 | --- | --- | --- |
 | 工程栈 | `package.json` 固定 Next.js 16.3.8、React 19.2.8、next-intl、Supabase；已安装 node_modules/next/dist/docs | 保留；写应用代码前读安装版相关指南，不沿用旧 16.3.3 盘点 |
 | 双语/后台 | `src/app/[locale]`、`src/i18n`、`src/proxy.ts`，后台 `/admin` | 前台中英、后台中文；所有界面文案两份 messages 同步 |
 | 社区演示 | `src/lib/community-demo.ts`、`src/components/community-preview.tsx`；首页和 `/community/[section]/[postId]` | 12 条独立双语演示帖；内存互动，不写真实 Actions/DB/XP；不能作为真实内容模型 |
-| 演示分类 | `safety / feedback / discussion / activities`；反馈分类为 `wallet / ai / changelog`，演示状态为 pending/discussion/recorded | 尚未对齐本轮一级命名与三子区；内部 key 不必为了改名立即改 URL，展示、表单与筛选后续一起改 |
+| 演示分类 | `safety / feedback / discussion / activities`；反馈分类为 `wallet / ai / changelog`，演示状态为 pending/discussion/recorded | M1-A2 已对齐产品共创及三子区的演示展示；保留内部 URL key。演示互动仍为本地状态 |
 | 账号/资料 | 登录、Google、钱包签名、onboarding、Profile、角色/权限 | 复用；本轮未重新验证真实账号流程 |
 | 内容 | `src/lib/types.ts`、`src/app/actions/submissions.ts` 仅 `product / idea`，文本描述上限 5000；表单偏作品 | 新增通用内容/板块/类型及扩展数据，不能只改显示名 |
 | 图片/视频 | `src/lib/media.ts`、`actions/media.ts`、迁移 0006：图片每文件 5 MB、最多 5 张，公开 Storage；`video_url` 为 URL | 复用部分图片逻辑，补视频文件、授权/归属、审核前可见性和清理 |
@@ -104,3 +104,13 @@ imToken Fans 服务 imToken 钱包用户，四个一级板块为 **钱包安全�
 业务：游客/普通用户/运营/产品处理/公告发布等角色、中英桌面移动端、公开与未审内容、发布/支持/评论/合并/通知/公告/活动逐项验证。M5 前落实可信来源、官方关系措辞、反馈承接人与权限、首批作品/安全案例/真实公告/活动、域名/OAuth/钱包签名、媒体预算及生产凭证。
 
 本轮需求整理已完成，后续应用调整尚未开始；M1-A2 仍待用户 review。下一步先依据 PRD 复核演示结构，再按阶段推进真实业务，不将本次需求说明当作实现验收。
+
+
+## 2026-10-16 集成状态与发布门槛
+
+- PR #1（协作规则）、#2（Vercel）、#3（社区首页整合）、#4（Product Hunter）已在任务分支整合；main 尚未获得所需维护者批准。
+- 集成 i18n（1249 键）、lint、build/TypeScript 通过；这些检查不证明数据库迁移或真实权限通过。
+- M1 首页、四板块与虚拟互动可供视觉 review；M3-C 产品界面及服务端代码已存在，真实业务不予验收。
+- 独立 QA 发现投稿 INSERT RLS/审核模式两项 P1，以及黑名单、去重并发、历史事实回填、草稿账户隔离四项 P2。先修复再验收，见 [QA 证据](reviews/M3-C-product-hunter-security.md)。
+- 不直接执行 `0023_product_hunter.sql`：历史产品默认免费/已上线/创作者身份缺乏证据。保留旧迁移，制定增量修正及安全执行方案后再操作。
+- 此次未读取或传输本地密钥、未执行迁移；Vercel 仍按无数据库配置的演示范围理解。正式站是否更新以 main 提交与成功部署逐一核对。
