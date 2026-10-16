@@ -163,3 +163,7 @@ PR #1–#4 已汇入 `codex/community-integration`（整合提交 `a3d0122`；20
 
 
 2026-10-16 主线整合完成：GitHub 已核实 PR #1/#2/#3/#4 全部 MERGED，主线整合提交 `fc9974118c4beb108061c4027fc2564d9572846a`。GitHub 必需批准人数为 0，PR、讨论解决、禁止强推/删除和管理员保护仍保留。正式部署状态见 [整合记录](docs/tasks/community-integration.md) 最新记录。M1 仍待用户视觉 review；M3-C 真实业务 QA 阻塞、迁移及四角色验收继续待办。历史等待维护者批准/未合并的记录已被本条取代。
+
+## 2026-10-16 浏览器标签品牌修正
+
+首页中英文及默认标题改为 imToken Fans，favicon/icon/apple-icon 改用本站玫红标志。i18n、lint、build及中英文页面head检查通过；提交前同步最新主线并保留双方路线图记录，本地交付，待PR审查，未部署。见[任务记录](docs/tasks/M1-browser-tab-brand.md)。
