@@ -36,28 +36,59 @@ export async function mirrorExternalAvatar(
 ): Promise<string | null> {
   if (!sourceUrl || isSelfHostedImage(sourceUrl)) return null;
 
+  // 用户可编辑 avatar_url。只镜像 Google 头像主机，禁止凭证、自定义端口及跳转，
+  // 防止 OAuth 回调变成任意 URL / 内网抓取入口。
+  let source: URL;
+  try {
+    source = new URL(sourceUrl);
+  } catch {
+    return null;
+  }
+  if (
+    source.protocol !== "https:" || source.username || source.password ||
+    (source.port && source.port !== "443") ||
+    !/^lh[0-9]+\.googleusercontent\.com$/.test(source.hostname)
+  ) return null;
+
   try {
     const response = await fetch(sourceUrl, {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      redirect: "error",
       // 服务端抓图不需要带任何身份，也不要让 CDN 因为 Referer 拒绝我们。
       referrer: "",
       cache: "no-store",
     });
     if (!response.ok) {
-      console.warn(`[avatar-mirror] 抓取失败 ${response.status}: ${sourceUrl}`);
+      console.warn(`[avatar-mirror] 抓取失败 ${response.status}`);
       return null;
     }
 
     const contentType = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
     if (!ALLOWED_UPLOAD_MIME_TYPES.includes(contentType)) {
-      console.warn(`[avatar-mirror] 不支持的类型 ${contentType}: ${sourceUrl}`);
+      console.warn(`[avatar-mirror] 不支持的类型 ${contentType}`);
       return null;
     }
 
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength === 0 || bytes.byteLength > MAX_UPLOAD_SIZE_BYTES) {
-      console.warn(`[avatar-mirror] 大小不合法 ${bytes.byteLength}: ${sourceUrl}`);
-      return null;
+    const reader = response.body?.getReader();
+    if (!reader) return null;
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_UPLOAD_SIZE_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    if (size === 0) return null;
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
     }
 
     // 路径第一段必须是 userId，跟 submission-media 桶现有的 Storage 策略保持一致。
@@ -85,8 +116,8 @@ export async function mirrorExternalAvatar(
     }
 
     return publicUrl;
-  } catch (error) {
-    console.warn("[avatar-mirror] 镜像头像时出错：", error);
+  } catch {
+    console.warn("[avatar-mirror] 镜像头像失败");
     return null;
   }
 }

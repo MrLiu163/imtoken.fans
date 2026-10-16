@@ -195,9 +195,16 @@ export async function createSubmission(
     return { error: t("submitFailed") };
   }
 
-  // admin 发帖天生免审；member 如果被单独授予了 auto_publish_submissions 权限，
-  // 自己发的帖子也直接发布——这是叠加在全局审核模式之上的"个人特权"，不进队列。
-  if (hasPermission(profile, "auto_publish_submissions")) {
+  // 社区产品始终先人工审核；旧点子保留原有审核设置和免审权限。
+  if (input.type === "product") {
+    await runModerationPipeline({
+      targetType: "submission",
+      targetId: inserted.id,
+      content: `${title}\n${tagline}\n\n${description}`,
+      authorId: profile.id,
+      requireManual: true,
+    });
+  } else if (hasPermission(profile, "auto_publish_submissions")) {
     await admin.from("submissions").update({ status: "published" }).eq("id", inserted.id);
   } else {
     await runModerationPipeline({
