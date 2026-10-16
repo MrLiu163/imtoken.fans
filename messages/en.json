@@ -1406,5 +1406,156 @@
         "personality": "Character concept: warm and optimistic, opening conversations with a light touch."
       }
     }
+  },
+  "cooperation": {
+    "demoNotice": "Interactive prototype · All IDEAs, authors and counts are fictional. Changes stay on this page and reset on refresh or leaving. No XP is awarded.",
+    "home": "Community home",
+    "breadcrumb": "Breadcrumb",
+    "heading": "Product Cooperation",
+    "eyebrow": "BUILD A BETTER EXPERIENCE TOGETHER",
+    "subtitle": "Share an IDEA, support improvements you need, and discuss a better wallet experience.",
+    "adminMode": "Demo admin mode",
+    "adminNotice": "These are simulated admin tools, not real permissions. Edits, labels, merges and status changes affect this demo only and do not represent official replies or commitments. All labels in this prototype are public; private internal tags are not included.",
+    "sectionsLabel": "Product Cooperation sections",
+    "feedback": "Product feedback · IDEAs",
+    "builds": "Community products",
+    "changelog": "Product updates",
+    "createHeading": "Share an IDEA",
+    "createIntro": "Check for a similar idea first. You can support an existing one.",
+    "moduleLabel": "Product area",
+    "titleLabel": "IDEA title",
+    "descriptionLabel": "Description",
+    "titlePlaceholder": "What would you like to improve?",
+    "descriptionPlaceholder": "Describe your situation, the problem, and the experience you would like.",
+    "similarHeading": "Possibly similar IDEAs",
+    "keywordOnly": "Title keyword matches for reference. This is not AI analysis.",
+    "noSimilar": "No matching examples yet. You can continue submitting.",
+    "safety": "Never include recovery phrases, private keys or passwords. Image and video file uploads are planned for the real version; this prototype does not upload attachments.",
+    "submit": "Submit IDEA",
+    "howTitle": "From ideas to discussion",
+    "howBody": "Describe a specific situation, vote for what you need, and add context in comments. Community collection is not a product commitment.",
+    "prototypeLimit": "This batch demonstrates the IDEA flow. Real accounts, permissions, attachments and notifications will be connected later.",
+    "reference": "View the Canny demo reference",
+    "listView": "IDEA list",
+    "progressView": "Progress board",
+    "search": "Search IDEAs",
+    "searchPlaceholder": "Search titles or descriptions",
+    "statusLabel": "Status",
+    "markLabel": "Public label",
+    "allModules": "All areas",
+    "allStates": "All statuses",
+    "sortLabel": "Sort by",
+    "resultCount": "{count, plural, one {# IDEA} other {# IDEAs}} · Fictional examples",
+    "empty": "No matching IDEAs",
+    "emptyHint": "Try a different keyword or clear the filters.",
+    "clearFilters": "Clear filters",
+    "emptyColumn": "No examples yet",
+    "progressNotice": "A status view of the same IDEAs. All progress is fictional and does not represent official plans.",
+    "commentCount": "{count, plural, one {# comment} other {# comments}}",
+    "ideaVote": "Vote or remove vote for “{title}”, currently {count, plural, one {# vote} other {# votes}}",
+    "commentVote": "Vote or remove vote for this comment, currently {count, plural, one {# vote} other {# votes}}",
+    "mergedBadge": "Includes merged source",
+    "back": "← Back to IDEAs",
+    "exampleUser": "Fictional user",
+    "support": "Vote to support",
+    "supported": "Supported · Click to undo",
+    "editIdea": "Edit IDEA and labels",
+    "editComment": "Edit comment and label",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "saved": "Demo changes saved. Previous content is available in edit history.",
+    "created": "IDEA created on this page. It will reset on refresh.",
+    "edited": "Edited by demo admin {count, plural, one {# time} other {# times}}",
+    "history": "View edit history",
+    "revision": "Before edit {index}",
+    "mergeHeading": "Group similar IDEAs",
+    "mergeLimit": "This prototype only merges two previously unmerged posts in one layer. Chained merges are disabled. The earliest post is retained; stable ID breaks timestamp ties.",
+    "mergeSelect": "Choose an IDEA to group with this one",
+    "chooseIdea": "Choose an IDEA",
+    "previewMerge": "Preview merge",
+    "mergePreviewTitle": "Confirm these describe the same need",
+    "mergeTarget": "Earliest post to retain: {title}",
+    "mergeCounts": "{before} original votes become {after} unique supporters.",
+    "mergeUndoNote": "Originals and discussion retain their sources. New comments and votes are preserved; undoing will not revive cancelled votes.",
+    "confirmMerge": "Confirm merge",
+    "merged": "Merged into the earliest IDEA.",
+    "mergeSources": "Merged sources and original content",
+    "mergedExplanation": "Supporters are deduplicated by user. Comments retain their sources and original records are preserved. You can undo this merge.",
+    "undoMerge": "Undo this merge",
+    "unmerged": "Merge undone. Original posts restored; new discussion and votes remain with their respective sources.",
+    "discussion": "Discussion · {count}",
+    "commentLabel": "Comment",
+    "commentPlaceholder": "Add a situation or tell us why you need this improvement.",
+    "reply": "Reply",
+    "replyingTo": "Replying to {name}",
+    "cancelReply": "Cancel reply",
+    "sendReply": "Post reply",
+    "sendComment": "Post comment",
+    "commentAdded": "Demo comment posted.",
+    "noComments": "No comments yet. Share your thoughts.",
+    "origin": "Source IDEA: {title}",
+    "modules": {
+      "wallet": "Wallet management",
+      "transfer": "Transfers & transactions",
+      "browser": "DApp browser",
+      "other": "Other / unsure"
+    },
+    "states": {
+      "inbox": "To organize",
+      "evaluating": "Under review",
+      "planned": "Planned",
+      "building": "In progress",
+      "done": "Complete",
+      "needsInfo": "Needs information",
+      "declined": "Not planned"
+    },
+    "marks": {
+      "none": "No label",
+      "research": "Research",
+      "needsInfo": "More context needed",
+      "featured": "Featured"
+    },
+    "sorts": {
+      "popular": "Most supported",
+      "latest": "Newest first",
+      "oldest": "Oldest first"
+    },
+    "authors": {
+      "lin": "Example · Lin",
+      "summer": "Example · Summer",
+      "river": "Example · River",
+      "moss": "Example · Moss",
+      "you": "You (demo identity)"
+    },
+    "seeds": {
+      "simulation": {
+        "title": "Preview asset changes before signing a transfer",
+        "description": "Before confirming a transaction, I would like to see what leaves my wallet, what arrives, and the estimated fee.\nChecking asset changes would help when using an exchange service for the first time. This IDEA and its status are fictional."
+      },
+      "preview": {
+        "title": "Simulate balance changes on the transaction confirmation screen",
+        "description": "Show balances before and after a transfer or swap on the signing screen, reducing manual checks. This is similar to the asset preview IDEA and can be used to try merging."
+      },
+      "addresses": {
+        "title": "Add labels and groups for frequent recipient addresses",
+        "description": "Label addresses for family and frequent recipients, and make them easy to find across networks to reduce copying mistakes."
+      },
+      "permissions": {
+        "title": "View and manage DApp approvals in one place",
+        "description": "See approved DApps in one place, filter by network, and clearly display approval scopes. This is only a progress example and does not revoke real approvals."
+      },
+      "networks": {
+        "title": "Remember my scroll position after switching networks",
+        "description": "Remember where I was in the asset list when browsing different networks so I can continue on return. The Complete status is only a board example."
+      }
+    },
+    "comments": {
+      "scenario": "Showing token amounts and fees together before a swap would help, especially when using a DApp for the first time.",
+      "reply": "Which information would you like to see first? For example, outgoing amounts, estimated receipts and fees.",
+      "preview": "I would also like to see balances before and after a transfer. This comment comes from the other similar IDEA."
+    },
+    "replyExpired": "The reply source changed. Please choose a comment again.",
+    "embeddedHeading": "Product feedback · IDEA collection",
+    "embeddedDemoNotice": "IDEA prototype · All content, authors and counts are fictional. Changes remain when switching categories above and reset on refresh or leaving this page. No XP is awarded."
   }
 }
