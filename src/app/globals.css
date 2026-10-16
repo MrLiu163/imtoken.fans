@@ -1342,3 +1342,27 @@ html {
   .token-personas-grid > button > span { font-size: 11px; }
   .token-personas-footnote { margin-top: 14px; }
 }
+
+/* Editorial banners: readable text beside artwork, complete artwork on narrow screens. */
+.community-carousel { position: relative; overflow: hidden; isolation: isolate; }
+.community-carousel-art { position: absolute; inset: 0 0 0 35%; z-index: -2; }
+.community-carousel-art img { object-fit: cover; object-position: center; }
+.community-carousel::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #edf2f7 0%, #edf2f7 38%, #edf2f7e8 48%, #edf2f700 73%); pointer-events: none; }
+.community-carousel-1::after { background: linear-gradient(90deg, #fcf0f4 0%, #fcf0f4 38%, #fcf0f4e8 48%, #fcf0f400 73%); }
+.community-carousel-2::after { background: linear-gradient(90deg, #eef3f0 0%, #eef3f0 38%, #eef3f0e8 48%, #eef3f000 73%); }
+.community-carousel-top, .community-carousel-link { width: 64%; }
+.community-carousel-controls { justify-content: flex-start; padding-top: 14px; }
+.community-carousel-link h1 { font-size: clamp(22px, 1.8vw, 26px); }
+.community-carousel-link > p { max-width: 42ch; color: #435168; }
+.community-participation > .community-button { margin-top: 18px; }
+.community-local-status { color: #68738a; font-size: 12px; line-height: 1.7; padding-top: 12px; }
+.community-comment-submit { justify-content: flex-end; }
+@media (max-width: 767px) {
+  .community-carousel-art { position: relative; inset: auto; width: calc(100% + 40px); margin: -18px -20px 18px; aspect-ratio: 16 / 9; flex-shrink: 0; z-index: 0; }
+  .community-carousel-art img { object-fit: contain; }
+  .community-carousel::after { display: none; }
+  .community-carousel-top, .community-carousel-link { width: 100%; }
+  .community-carousel-link { padding-top: 12px; }
+  .community-carousel-link h1 { font-size: 21px; }
+  .community-carousel-controls { justify-content: center; }
+}

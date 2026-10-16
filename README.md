@@ -37,9 +37,9 @@
 
 ## GitHub 保存代码（第一次使用）
 
-仓库：[simonliuliu/imtoken.fans](https://github.com/simonliuliu/imtoken.fans)，设为私有，仅你和你授权的人可访问。电脑上的项目目录仍是 `/Users/simonliu/Desktop/imtoken.fans`。
+仓库：[simonliuliu/imtoken.fans](https://github.com/simonliuliu/imtoken.fans)，为公开仓库，任何人可阅读；只有获得授权的协作者可以推送任务分支。电脑上的项目目录仍是 `/Users/simonliu/Desktop/imtoken.fans`。
 
-以后改完代码，可以直接对 Codex 说：「检查本次改动并提交到 GitHub」，由 Codex 检查、提交并上传。VS Code 里“保存文件”只保存到电脑；Git 的“提交”记录本地版本；“推送”才会同步到 GitHub。
+以后可以直接对 Codex 说：「按团队协作规则完成这个任务并提交 PR」。所有开发先同步主线，再新建自己的任务分支；每次提交前再次同步远端，解决冲突并检查，再推送自己的分支，由仓库所有者决定合并；你说“合并”后，Codex 检查、解决冲突并执行。详细操作见 [团队协作规则](CONTRIBUTING.md)。VS Code 里“保存文件”只保存到电脑；Git 的“提交”记录本地版本；“推送”才会同步到 GitHub；PR 是申请将任务分支合入主线。
 
 `.env.local` 中的真实密钥、`node_modules` 依赖和 `.next` 构建结果已排除，不会上传。GitHub 中只保留空值配置模板 `.env.example`；换电脑时需要单独、安全地配置 `.env.local`，再安装依赖。
 
@@ -196,6 +196,10 @@ roadmap.md                当前任务优先级与里程碑
 ```
 
 ## 部署到 Vercel
+
+本项目已在 `simonliulius-projects` 下创建 `imtoken-fans` 并连接本仓库。任务分支推送后查看 PR 的 Vercel 预览状态；合入 `main` 后更新主站。当前是未配置数据库等密钥的社区演示，真实登录与写入不在此次部署范围内。配置、验证结果与限制见 [自动预览任务记录](docs/tasks/vercel-auto-preview.md)。
+
+以下为后续启用真实业务时的通用配置步骤；不要把本地密钥直接写进公开仓库，也不要未经确认将生产高权限密钥用于外部 PR 预览。
 
 1. 代码推送到 GitHub 后，登录 https://vercel.com ，点 **Add New -> Project**，选择这个仓库
 2. 在 **Environment Variables** 里把 `.env.example` 里的变量都填上真实值

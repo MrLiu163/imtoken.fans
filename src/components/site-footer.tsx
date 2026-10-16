@@ -14,7 +14,7 @@ export async function SiteFooter() {
             <Link href="/faq">{t("faq")}</Link>
           </nav>
         </div>
-        <div className="fans-footer-bottom"><p>{t("copyright", { year: 2026 })}</p><p>{t("communityNote")}</p></div>
+        <div className="fans-footer-bottom"><p>{t("copyright", { year: 2026 })}</p><p>{t("previewVersion")}</p></div>
       </div>
     </footer>
   );

@@ -55,7 +55,8 @@
     "feedback": "Product feedback",
     "discussion": "Discussion",
     "activities": "Activities",
-    "communityNote": "Community discussions do not constitute official advice."
+    "communityNote": "Community discussions do not constitute official advice.",
+    "previewVersion": "Preview version"
   },
   "meta": {
     "homeTitle": "imToken Fans — A community for imToken wallet users",
@@ -1077,15 +1078,15 @@
     "sectionsLabel": "Four community sections",
     "breadcrumb": "Breadcrumb",
     "compose": "Post",
-    "composeTitle": "Preview a post",
-    "composeNotice": "This preview is never published or saved to your account. Signing in does not change demo data. Do not enter sensitive information.",
+    "composeTitle": "Post preview",
+    "composeNotice": "This is a preview and has not been published. Keep sensitive information private.",
     "boardField": "Choose a section",
     "titleField": "Title (up to 60 characters)",
     "bodyField": "Body (up to 2,000 characters)",
     "titlePlaceholder": "What would you like to discuss?",
     "bodyPlaceholder": "Share an idea using fictional examples. Never include sensitive wallet information.",
     "previewCta": "See preview",
-    "previewOnly": "Preview only · Not published",
+    "previewOnly": "Not published",
     "editPreview": "Continue editing",
     "close": "Close preview",
     "sortLabel": "Sort posts",
@@ -1095,17 +1096,17 @@
       "popular": "Popular"
     },
     "categoryFilter": "Content category",
-    "statusFilter": "Demo status",
+    "statusFilter": "Processing status",
     "all": "All",
     "featured": "Featured",
-    "exampleCount": "{count} sample posts",
-    "feedLabel": "Community sample posts",
+    "exampleCount": "{count} posts",
+    "feedLabel": "Community posts",
     "commentCount": "{count} comments",
     "likeCount": "{count} likes",
     "voteCount": "{count} votes",
-    "loadMore": "Load more samples",
+    "loadMore": "Load more",
     "feedFootnote": "Content, authors and counts are fictional examples. Interactions stay on this page.",
-    "empty": "No sample posts match this filter",
+    "empty": "No posts yet",
     "showAll": "Show all",
     "popularTitle": "Popular",
     "announcementsTitle": "Community notices",
@@ -1120,7 +1121,7 @@
     "profile": "My profile",
     "growthRules": "Growth guide",
     "checkinCta": "Check-in & lucky draws",
-    "historyNote": "Community Product Hunter is now open; legacy ideas remain available in their archive.",
+    "historyNote": "Explore Community Product Hunter; legacy ideas remain in their archive.",
     "historicalProducts": "Open Product Hunter",
     "historicalIdeas": "AI idea archive",
     "comment": "Comment",
@@ -1130,17 +1131,17 @@
     "voted": "Choice saved locally",
     "interactionNotice": "Demo interactions stay on this page and reset on refresh. No account changes or rewards.",
     "commentsTitle": "Comments and replies ({count})",
-    "commentPlaceholder": "Share a thought (demo, up to 1,000 characters; no sensitive information)",
+    "commentPlaceholder": "Share your thoughts (up to 1,000 characters; keep sensitive information private)",
     "reply": "Reply",
     "replyingTo": "Replying to {name}",
     "cancelReply": "Cancel reply",
-    "addReply": "Add demo reply",
-    "addComment": "Add demo comment",
-    "commentAdded": "Demo comment added locally. It was not published.",
+    "addReply": "Add reply",
+    "addComment": "Add comment",
+    "commentAdded": "Added for this page only",
     "commentLikesTotal": "You have liked {count} sample comments",
-    "justNow": "Just now · Local demo",
+    "justNow": "Just now",
     "fictionalAuthor": "Original fictional author · Not a real profile",
-    "authorPostCount": "{count} demo posts",
+    "authorPostCount": "{count} posts",
     "authorPostCountNote": "Sample contributions, not real activity",
     "backToBoard": "Back to section",
     "related": "Keep exploring",
@@ -1155,12 +1156,18 @@
       "summer": "Summer Breeze",
       "river": "River Notes",
       "moss": "Moss Observer",
-      "you": "You (demo)"
+      "you": "You"
     },
     "comments": {
       "first": "This is a specific starting point. Describing exactly where the confusion happens makes it easier to keep the conversation useful.",
       "second": "I wonder how people with different experience would understand it. We could keep a few alternatives and compare them together.",
-      "reply": "Agreed. Describe the question clearly first, then discuss possible approaches. This conversation is also a sample."
+      "reply": "Agreed. Let’s describe the problem clearly before exploring solutions.",
+      "note1": "Perhaps we could start with one concrete situation and see where people get stuck.",
+      "note2": "Clear sources would help readers check the details afterward.",
+      "note3": "It would be useful to compare perspectives from people with different experience.",
+      "note4": "Collecting questions first, then making a short checklist, could help the discussion.",
+      "note5": "I wonder whether this is just as easy to read on a phone.",
+      "note6": "Keeping the context would make later contributions more useful."
     },
     "categories": {
       "scams": "Scam awareness",
@@ -1168,7 +1175,7 @@
       "help": "Wallet questions",
       "wallet": "Feedback",
       "ai": "AI co-creation",
-      "changelog": "Product updates · demo",
+      "changelog": "Product updates",
       "questions": "Forum · Questions",
       "research": "Forum · Learning",
       "industry": "Forum · Industry",
@@ -1182,20 +1189,20 @@
       "builds": "Community builds"
     },
     "states": {
-      "pending": "Pending · Demo",
-      "discussion": "Discussing · Demo",
-      "recorded": "Recorded · Demo"
+      "pending": "To review",
+      "discussion": "Under evaluation",
+      "recorded": "Recorded"
     },
     "sections": {
       "safety": {
         "name": "Wallet safety",
         "topics": "Stories · Cases · Guides · Q&A",
-        "description": "Share security stories, examine cases and discuss practical questions. These fictional examples are neither official publications nor verified accounts."
+        "description": "Share security stories, examine cases and discuss practical questions."
       },
       "feedback": {
         "name": "Co-create",
         "topics": "Feedback · Community builds · Updates",
-        "description": "Share product feedback, discover community builds and read product updates. All content and processing states shown here are fictional examples."
+        "description": "Share product feedback, discover community builds and read product updates."
       },
       "discussion": {
         "name": "Discussion",
@@ -1235,7 +1242,7 @@
       },
       "clearer-transaction": {
         "title": "A small suggestion: make transaction confirmations easier to read",
-        "excerpt": "A fictional wallet suggestion about putting key information first and explaining unfamiliar terms clearly.",
+        "excerpt": "Put important information first and explain unfamiliar terms in plain language.",
         "body1": "Imagine a user wanting to understand an action before reviewing its parameters. Putting the essentials first could make that moment easier to navigate.",
         "body2": "The action, the parties involved, and important cautions could have distinct layers. Keep the first explanation short and make extra context available when needed.",
         "body3": "The illustration is for discussing information hierarchy. Which part would you change first? I would also like to hear how someone using a wallet for the first time would read it.",
@@ -1274,8 +1281,8 @@
         "option2": "Recognizing urgency tactics"
       },
       "ai-explainer": {
-        "title": "Community build demo: organize resources with Chain Bookmarks",
-        "excerpt": "A fictional non-AI tool for organizing resources by network and purpose, without connecting a wallet or reading assets.",
+        "title": "Chain Bookmarks: a concept for organizing useful resources",
+        "excerpt": "Organize resources by network and purpose, without connecting a wallet or reading assets. A concept, with no available product yet.",
         "body1": "Chain Bookmarks is a fictional build created to demonstrate this community section. No real product is available. Its creator, features and support count are examples, with no official imToken product relationship.",
         "body2": "Imagine a resource folder saved on your device: manually add titles, purposes and source notes, then organize them by network or topic. No wallet connection, address or asset history is needed. Users must still check whether a link is trustworthy.",
         "body3": "This example illustrates discovery, support, creator discussion and iteration. Try local support or comments below; refreshing resets them. There is no live trial link, and supporting is not counted as a completed trial.",
@@ -1284,7 +1291,7 @@
         "option2": "Record sources"
       },
       "reading-release-notes": {
-        "title": "Product update sample: make release notes easier to read",
+        "title": "Product update draft: make release notes easier to read",
         "excerpt": "A fictional announcement layout, with no actual release or official publication.",
         "body1": "This fictional sample demonstrates the product updates section through a made-up author. It has no real version, release date or official publisher identity, and announces no actual imToken change.",
         "body2": "A useful update can explain the change and its impact, then describe scope, precautions and a verifiable original source. Real announcements will require an authorized publisher to confirm the version and source.",
@@ -1359,14 +1366,15 @@
     "compactGrowth": "Lv2 · 760 XP (example progress)",
     "goCheckin": "Check in",
     "carouselRole": "carousel",
-    "carouselTitle": "Community highlights (examples)",
+    "carouselTitle": "Community highlights",
     "readMore": "Read more",
     "previousSlide": "Previous slide",
     "nextSlide": "Next slide",
     "goToSlide": "Show slide {index}",
     "slidePosition": "Slide {index} of {count}",
     "refreshPopular": "Refresh",
-    "contentTypeField": "Content type"
+    "contentTypeField": "Content type",
+    "localInteraction": "Updated for this page only"
   },
   "tokenPersonas": {
     "title": "Token Personas",
