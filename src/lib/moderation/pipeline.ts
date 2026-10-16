@@ -16,6 +16,7 @@ interface PipelineParams {
   targetId: string;
   content: string;
   authorId: string;
+  requireManual?: boolean;
 }
 
 // 提交/评论创建后调用一次：按管理员配置的审核模式（不审核/人工/AI）决定接下来发生什么。
@@ -27,7 +28,7 @@ export async function runModerationPipeline(
   params: PipelineParams
 ): Promise<"pending" | "published"> {
   const supabase = await createClient();
-  const mode = await getModerationMode(supabase, params.targetType);
+  const mode = params.requireManual ? "manual" : await getModerationMode(supabase, params.targetType);
   const admin = createAdminClient();
   const table = TARGET_TABLE[params.targetType];
 

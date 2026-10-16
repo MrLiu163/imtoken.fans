@@ -1,6 +1,6 @@
 # imToken Fans 项目路线图
 
-更新：2026-10-16 · 当前阶段：4 个 PR 已在整合分支汇合并解决冲突；M1 演示待用户 review，M3-C 真实业务受 QA 问题阻塞；所有者授权规则已生效，PR #1–#4 均已合入 main；正式站部署已成功。
+更新：2026-10-16 · 当前阶段：正式环境登录/数据配置、受控迁移与安全修复已完成，正在部署验证；M1 视觉 review 与 M3-C 剩余业务验收保留。
 目标：服务 imToken 钱包用户，包含钱包安全、产品共创（产品反馈 / 社区产品 / 产品公告）、综合交流、活动区四板块。
 
 产品定义、需求编号与验收见 [产品需求说明](docs/product-requirements.md)，代码盘点、技术边界见 [执行计划](docs/product-execution-plan.md)。本轮 [需求对齐记录](docs/tasks/product-scope-alignment.md)已完成，M1-A2已同步演示导航/三子区与分类互动；真实业务模型仍待后续实施。旧路线图见 [历史归档](docs/archive/imaihunt-roadmap-v0.2.md)，不作为本次进度依据。
@@ -163,3 +163,6 @@ PR #1–#4 已汇入 `codex/community-integration`（整合提交 `a3d0122`；20
 
 
 2026-10-16 主线整合完成：GitHub 已核实 PR #1/#2/#3/#4 全部 MERGED，主线整合提交 `fc9974118c4beb108061c4027fc2564d9572846a`。GitHub 必需批准人数为 0，PR、讨论解决、禁止强推/删除和管理员保护仍保留。正式部署状态见 [整合记录](docs/tasks/community-integration.md) 最新记录。M1 仍待用户视觉 review；M3-C 真实业务 QA 阻塞、迁移及四角色验收继续待办。历史等待维护者批准/未合并的记录已被本条取代。
+
+
+2026-10-16 正式登录与数据接入：6 项 production 环境变量已配置，正式回调已核验；0023 与新增 0024 通过受控事务执行，保留旧内容/互动及未知资料。两项 P1 和登录跳转/头像/账户草稿及竞态问题已修复，工程及独立 QA 通过，专用账号 RLS 实测通过。当前等待正式部署和页面登录验证；并发网址去重、真人 Google/外部钱包和其他业务全流程仍待验收。见 [任务卡](docs/tasks/vercel-live-auth.md) 与 [复核](docs/reviews/vercel-live-auth.md)。此前无数据库配置、未迁移的记录为历史状态。
