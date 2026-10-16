@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -9,7 +9,20 @@ import { deleteSubmissionMedia, uploadSubmissionMedia } from "@/app/actions/medi
 import { getSubmissionMediaUrl, MAX_SCREENSHOTS, MAX_SOCIAL_LINKS, MAX_TEAM_MEMBERS } from "@/lib/media";
 import { TagPicker } from "@/components/tag-picker";
 import { MAX_TAGS } from "@/lib/tag-taxonomy";
-import type { SocialLink, TeamMember } from "@/lib/types";
+import {
+  MAKER_RELATIONSHIPS,
+  PRODUCT_LAUNCH_STAGES,
+  PRODUCT_PLATFORMS,
+  PRODUCT_PRICING,
+} from "@/lib/product-hunter";
+import type {
+  MakerRelationship,
+  ProductLaunchStage,
+  ProductPlatform,
+  ProductPricing,
+  SocialLink,
+  TeamMember,
+} from "@/lib/types";
 
 type SubmitType = "product" | "idea";
 
@@ -24,6 +37,12 @@ interface Draft {
   screenshotPaths: string[];
   team: TeamMember[];
   socialLinks: SocialLink[];
+  productPlatforms: ProductPlatform[];
+  pricingType: ProductPricing;
+  launchStage: ProductLaunchStage;
+  makerRelationship: MakerRelationship;
+  makerNote: string;
+  feedbackPrompt: string;
 }
 
 function emptyDraft(): Draft {
@@ -38,10 +57,17 @@ function emptyDraft(): Draft {
     screenshotPaths: [],
     team: [],
     socialLinks: [],
+    productPlatforms: [],
+    pricingType: "free",
+    launchStage: "live",
+    makerRelationship: "creator",
+    makerNote: "",
+    feedbackPrompt: "",
   };
 }
 
 const DESCRIPTION_MIN = 10;
+const DRAFT_STORAGE_KEY = "imtoken-fans-submission-drafts-v2";
 
 export default function SubmitPage() {
   const t = useTranslations("submit");
@@ -54,6 +80,26 @@ export default function SubmitPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [published, setPublished] = useState(false);
+  const [draftReady, setDraftReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+        if (saved) setDrafts(JSON.parse(saved) as Record<SubmitType, Draft>);
+      } catch {
+        window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      } finally {
+        setDraftReady(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
+  }, [draftReady, drafts]);
 
   const draft = drafts[type];
 
@@ -119,7 +165,14 @@ export default function SubmitPage() {
   const titleOk = draft.title.trim().length > 1;
   const taglineOk = draft.tagline.trim().length > 1;
   const descriptionOk = draft.description.trim().length >= DESCRIPTION_MIN;
-  const canSubmit = titleOk && taglineOk && descriptionOk && !busy;
+  const productReady =
+    !isProduct ||
+    (Boolean(draft.websiteUrl.trim()) &&
+      Boolean(draft.logoPath) &&
+      draft.screenshotPaths.length > 0 &&
+      draft.tags.length > 0 &&
+      draft.productPlatforms.length > 0);
+  const canSubmit = titleOk && taglineOk && descriptionOk && productReady && !busy;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -138,6 +191,12 @@ export default function SubmitPage() {
       screenshotPaths: draft.screenshotPaths,
       team: draft.team,
       socialLinks: draft.socialLinks,
+      productPlatforms: draft.productPlatforms,
+      pricingType: draft.pricingType,
+      launchStage: draft.launchStage,
+      makerRelationship: draft.makerRelationship,
+      makerNote: draft.makerNote,
+      feedbackPrompt: draft.feedbackPrompt,
     });
     setBusy(false);
     if ("error" in result) {
@@ -177,6 +236,7 @@ export default function SubmitPage() {
             placeholder={t("fieldTitlePlaceholder")}
             value={draft.title}
             onChange={(v) => updateDraft({ title: v })}
+            maxLength={isProduct ? 60 : 100}
             hint={!titleOk && draft.title.length > 0 ? t("minChars", { min: 2 }) : undefined}
           />
           <Field
@@ -184,6 +244,7 @@ export default function SubmitPage() {
             placeholder={t("fieldTaglinePlaceholder")}
             value={draft.tagline}
             onChange={(v) => updateDraft({ tagline: v })}
+            maxLength={isProduct ? 60 : 140}
             hint={!taglineOk && draft.tagline.length > 0 ? t("minChars", { min: 2 }) : undefined}
           />
           <Field
@@ -196,6 +257,7 @@ export default function SubmitPage() {
             value={draft.description}
             onChange={(v) => updateDraft({ description: v })}
             textarea
+            maxLength={5000}
             hint={
               !descriptionOk
                 ? t("needMoreChars", {
@@ -213,12 +275,40 @@ export default function SubmitPage() {
           {/* 点子还没做出来，官网 / Logo / 团队 / 社交这几项对它没有意义——
               留着只会让人以为"没填就不完整"。所以只在提交产品时才出现。 */}
           {isProduct && (
-            <Field
-              label={t("fieldWebsite")}
-              placeholder="https://..."
-              value={draft.websiteUrl}
-              onChange={(v) => updateDraft({ websiteUrl: v })}
-            />
+            <>
+              <Field
+                label={t("fieldWebsite")}
+                placeholder="https://..."
+                value={draft.websiteUrl}
+                onChange={(v) => updateDraft({ websiteUrl: v })}
+                maxLength={300}
+                hint={t("fieldWebsiteHint")}
+              />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <SelectField
+                  label={t("fieldStage")}
+                  value={draft.launchStage}
+                  onChange={(value) => updateDraft({ launchStage: value as ProductLaunchStage })}
+                  options={PRODUCT_LAUNCH_STAGES.map((value) => ({ value, label: t(`stageOptions.${value}`) }))}
+                />
+                <SelectField
+                  label={t("fieldPricing")}
+                  value={draft.pricingType}
+                  onChange={(value) => updateDraft({ pricingType: value as ProductPricing })}
+                  options={PRODUCT_PRICING.map((value) => ({ value, label: t(`pricingOptions.${value}`) }))}
+                />
+                <SelectField
+                  label={t("fieldRelationship")}
+                  value={draft.makerRelationship}
+                  onChange={(value) => updateDraft({ makerRelationship: value as MakerRelationship })}
+                  options={MAKER_RELATIONSHIPS.map((value) => ({ value, label: t(`relationshipOptions.${value}`) }))}
+                />
+              </div>
+              <PlatformPicker
+                value={draft.productPlatforms}
+                onChange={(productPlatforms) => updateDraft({ productPlatforms })}
+              />
+            </>
           )}
           <Field
             label={t("fieldVideo")}
@@ -234,6 +324,26 @@ export default function SubmitPage() {
             paths={draft.screenshotPaths}
             onChange={(paths) => updateDraft({ screenshotPaths: paths })}
           />
+          {isProduct && (
+            <>
+              <Field
+                label={t("fieldMakerNote")}
+                placeholder={t("fieldMakerNotePlaceholder")}
+                value={draft.makerNote}
+                onChange={(value) => updateDraft({ makerNote: value })}
+                textarea
+                maxLength={1200}
+              />
+              <Field
+                label={t("fieldFeedbackPrompt")}
+                placeholder={t("fieldFeedbackPromptPlaceholder")}
+                value={draft.feedbackPrompt}
+                onChange={(value) => updateDraft({ feedbackPrompt: value })}
+                textarea
+                maxLength={500}
+              />
+            </>
+          )}
           {isProduct && <TeamField team={draft.team} onChange={(team) => updateDraft({ team })} />}
           {isProduct && (
             <SocialLinksField
@@ -250,6 +360,8 @@ export default function SubmitPage() {
               <li>{t("processStep3")}</li>
             </ol>
           </div>
+
+          <p className="font-mono text-[11px] text-faint">{draftReady ? t("draftSaved") : t("draftLoading")}</p>
 
           {error && <p className="rounded-lg bg-risk-soft px-3 py-2 text-xs text-risk">{error}</p>}
 
@@ -320,6 +432,7 @@ function Field({
   onChange,
   textarea,
   hint,
+  maxLength,
 }: {
   label: string;
   placeholder: string;
@@ -327,6 +440,7 @@ function Field({
   onChange: (value: string) => void;
   textarea?: boolean;
   hint?: string;
+  maxLength?: number;
 }): ReactNode {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
@@ -337,6 +451,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={4}
+          maxLength={maxLength}
           className="rounded-lg border border-line bg-bg px-3 py-2 text-ink placeholder:text-faint focus:border-brand focus:outline-none"
         />
       ) : (
@@ -344,11 +459,67 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          maxLength={maxLength}
           className="rounded-lg border border-line bg-bg px-3 py-2 text-ink placeholder:text-faint focus:border-brand focus:outline-none"
         />
       )}
       {hint && <span className="font-mono text-[11px] text-faint">{hint}</span>}
     </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="flex flex-col gap-1.5 text-sm">
+      <span className="font-medium text-ink">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-lg border border-line bg-bg px-3 py-2 text-ink focus:border-brand focus:outline-none"
+      >
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function PlatformPicker({ value, onChange }: { value: ProductPlatform[]; onChange: (value: ProductPlatform[]) => void }) {
+  const t = useTranslations("submit");
+  function toggle(platform: ProductPlatform) {
+    onChange(value.includes(platform) ? value.filter((item) => item !== platform) : [...value, platform]);
+  }
+  return (
+    <fieldset className="text-sm">
+      <legend className="font-medium text-ink">{t("fieldPlatforms")}</legend>
+      <p className="mt-1 text-xs text-faint">{t("fieldPlatformsHint")}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {PRODUCT_PLATFORMS.map((platform) => (
+          <button
+            key={platform}
+            type="button"
+            aria-pressed={value.includes(platform)}
+            onClick={() => toggle(platform)}
+            className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              value.includes(platform)
+                ? "border-brand bg-brand-soft text-brand-ink"
+                : "border-line text-muted hover:border-brand"
+            }`}
+          >
+            {t(`platformOptions.${platform}`)}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
