@@ -1,6 +1,6 @@
 # imToken Fans 项目路线图
 
-更新：2026-10-16 · 当前阶段：4 个 PR 已在整合分支汇合并解决冲突；M1 演示待用户 review，M3-C 真实业务受 QA 问题阻塞；所有者已授权取消外部批准门槛，正在执行主线合并。  
+更新：2026-10-16 · 当前阶段：4 个 PR 已在整合分支汇合并解决冲突；M1 演示待用户 review，M3-C 真实业务受 QA 问题阻塞；所有者授权规则已生效，PR #1–#4 均已合入 main；正式站部署已成功。
 目标：服务 imToken 钱包用户，包含钱包安全、产品共创（产品反馈 / 社区产品 / 产品公告）、综合交流、活动区四板块。
 
 产品定义、需求编号与验收见 [产品需求说明](docs/product-requirements.md)，代码盘点、技术边界见 [执行计划](docs/product-execution-plan.md)。本轮 [需求对齐记录](docs/tasks/product-scope-alignment.md)已完成，M1-A2已同步演示导航/三子区与分类互动；真实业务模型仍待后续实施。旧路线图见 [历史归档](docs/archive/imaihunt-roadmap-v0.2.md)，不作为本次进度依据。
@@ -156,7 +156,10 @@ M1-A 已交付首页、Header/Footer、四板块导览、登录品牌小修、VS
 
 ### 2026-10-16 全 PR 整合
 
-PR #1–#4 已汇入 `codex/community-integration`（整合提交 `a3d0122`）；解决两份 messages 与 roadmap 冲突，保留双方有效内容。i18n 1249 键、lint、build/TypeScript 通过。产品入口不再宣称已全面开放。独立 QA 发现 2 项 P1、4 项 P2，详见[风险记录](docs/reviews/M3-C-product-hunter-security.md)。未执行数据库迁移、未配置线上数据库凭证。各 PR 无其他维护者批准，main 尚未合并；分支预览与正式生产版本分别核对。后续取得维护者审查，再安排业务修复及真实角色验收。
+PR #1–#4 已汇入 `codex/community-integration`（整合提交 `a3d0122`；2026-10-16 已通过 PR #3 合入 main）；解决两份 messages 与 roadmap 冲突，保留双方有效内容。i18n 1249 键、lint、build/TypeScript 通过。产品入口不再宣称已全面开放。独立 QA 发现 2 项 P1、4 项 P2，详见[风险记录](docs/reviews/M3-C-product-hunter-security.md)。未执行数据库迁移、未配置线上数据库凭证。各 PR 无其他维护者批准，main 尚未合并；分支预览与正式生产版本分别核对。后续取得维护者审查，再安排业务修复及真实角色验收。
 
 
 2026-10-16 合并授权更新：所有者明确其他成员为协作者，本人决定合并；聊天指令授权 AI 检查并合并。取消外部批准要求，保留 PR 与工程检查；此前等待其他维护者批准为历史状态。真实业务 QA 阻塞不因规则变化解除。
+
+
+2026-10-16 主线整合完成：GitHub 已核实 PR #1/#2/#3/#4 全部 MERGED，主线整合提交 `fc9974118c4beb108061c4027fc2564d9572846a`。GitHub 必需批准人数为 0，PR、讨论解决、禁止强推/删除和管理员保护仍保留。正式部署状态见 [整合记录](docs/tasks/community-integration.md) 最新记录。M1 仍待用户视觉 review；M3-C 真实业务 QA 阻塞、迁移及四角色验收继续待办。历史等待维护者批准/未合并的记录已被本条取代。
